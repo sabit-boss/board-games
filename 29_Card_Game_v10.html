@@ -427,8 +427,8 @@ function setTrumpMode(p,m,w){
     G.msg='Trump comes from the 7th card of @'+p+', kept aside. The last cards are dealt.';
   }
   G.phase='play';G.turn=(G.dealer+1)%4;
-  /* 7th-card trump but none of the bidder's other 7 cards is a point card (J, 9, A, 10): cancel or continue */
-  if(m==='7th'&&!w&&G.hands[p].every(c=>pt(c)===0)){G.phase='no7';G.turn=p;G.msg='@'+p+' has no point card among the other 7 cards. Cancel this deal or continue?'}
+  /* 7th-card trump but none of the bidder's other 7 cards is a trump-suit point card (J, 9, A, 10): cancel or continue */
+  if(m==='7th'&&!w&&G.hands[p].filter(c=>c.s===G.trump).every(c=>pt(c)===0)){G.phase='no7';G.turn=p;G.msg='@'+p+' has no point card of the trump suit among the other 7 cards. Cancel this deal or continue?'}
   else openSh();
 }
 function setTrump(p,c){
@@ -530,13 +530,13 @@ function apply(p,a){
   else if(t==='rdbl'&&G.phase==='rdbl'&&G.turn===p)doRdbl(p,!!a.d);
   else if(t==='sh'&&G.phase==='sh'&&G.turn===p){if(a.d)declareSh(p);else{shNext();botSh()}}
   else if(t==='trump'&&G.phase==='trump'&&G.bidder===p){
-    if(a.m==='7th'&&a.w&&h.every(c=>pt(c)===0)){setTrumpMode(p,'7th',1);G.warn=p;G.msg='@'+p+' has no point cards but wants to continue. Trump is hidden.'}
+    if(a.m==='7th'&&a.w&&h.filter(c=>c.s===G.trump).every(c=>pt(c)===0)){setTrumpMode(p,'7th',1);G.warn=p;G.msg='@'+p+' has no point cards but wants to continue. Trump is hidden.'}
     else if(a.m==='nt'||a.m==='7th')setTrumpMode(p,a.m);
     else{const c=h.find(x=>cid(x)===a.c);if(!c)return;setTrump(p,c)}
   }
   else if(t==='no7'&&(G.phase==='no7'||G.phase==='trump')&&G.bidder===p){
-    if(a.c){G.dealer=(G.dealer+3)%4;newRound();G.msg='Deal cancelled: @'+p+' had no point cards for a 7th-card trump. New deal: @'+G.turn+' bids first.'}
-    else if(G.phase==='no7'){G.phase='play';G.turn=(G.dealer+1)%4;G.warn=p;G.msg='@'+p+' has no point cards but wants to continue. Trump is hidden.';openSh()}
+    if(a.c){G.dealer=(G.dealer+3)%4;newRound();G.msg='Deal cancelled: @'+p+' had no trump-suit point cards for a 7th-card trump. New deal: @'+G.turn+' bids first.'}
+    else if(G.phase==='no7'){G.phase='play';G.turn=(G.dealer+1)%4;G.warn=p;G.msg='@'+p+' has no trump-suit point cards but wants to continue. Trump is hidden.';openSh()}
   }
   else if(G.phase==='play'&&G.trick.length<tl()&&G.turn===p){
     if(t==='play'){const c=h.find(x=>cid(x)===a.c);if(!c||!moves(p).cards.includes(c))return;play(p,c)}
@@ -1130,13 +1130,13 @@ function modalH(g,V,myTr){
   }
   if(g.phase==='no7'&&g.bidder===me){
     const cs=g.hands[me].map(c=>cardH(c)).join('');
-    return '<div class="mp"><h2>No point cards</h2><p>None of your other 7 cards is a point card (J, 9, A or 10). Your 7th card, shown at the end, sets trump.</p><div style="--cw:36px;display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin:12px 0">'+cs+(g.tcard?'<span style="width:100%;font-size:11px;color:var(--mut)">7th card (trump)</span>'+cardH(g.tcard,'win2'):'')+'</div><p class="note">Cancel this deal and redeal, or continue anyway? If you continue, everyone is told.</p><button class="pri" style="width:100%;margin-top:12px" onclick="act({t:\'no7\',c:1})">Cancel this deal</button><button style="width:100%;margin-top:8px" onclick="act({t:\'no7\',c:0})">Continue anyway</button></div>';
+    return '<div class="mp"><h2>No trump-suit point card</h2><p>None of your 7 cards is a point card (J, 9, A or 10) of the trump suit. Your 7th card, shown at the end, sets trump.</p><div style="--cw:36px;display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin:12px 0">'+cs+(g.tcard?'<span style="width:100%;font-size:11px;color:var(--mut)">7th card (trump)</span>'+cardH(g.tcard,'win2'):'')+'</div><p class="note">Cancel this deal and redeal, or continue anyway? If you continue, everyone is told.</p><button class="pri" style="width:100%;margin-top:12px" onclick="act({t:\'no7\',c:1})">Cancel this deal</button><button style="width:100%;margin-top:8px" onclick="act({t:\'no7\',c:0})">Continue anyway</button></div>';
   }
-  if(g.warn>=0&&warnSeen!==g.id&&g.phase!=='over')return '<div class="mp"><h2>No power cards</h2><p><b>'+(g.warn===me?'You have':g.names[g.warn]+' has')+'</b> no point card (J, 9, A or 10) among the other 7 cards of the 7th-card trump, but '+(g.warn===me?'chose':'wants')+' to continue.</p><button class="pri" style="width:100%;margin-top:10px" onclick="closeWarn()">OK</button></div>';
+  if(g.warn>=0&&warnSeen!==g.id&&g.phase!=='over')return '<div class="mp"><h2>No trump-suit point card</h2><p><b>'+(g.warn===me?'You have':g.names[g.warn]+' has')+'</b> no point card (J, 9, A or 10) of the trump suit among the other 7 cards of the 7th-card trump, but '+(g.warn===me?'chose':'wants')+' to continue.</p><button class="pri" style="width:100%;margin-top:10px" onclick="closeWarn()">OK</button></div>';
   if(myTr){
     const sc=g.hands[me].find(c=>cid(c)===selT),ok=!!selT,w7=selT==='S7'&&g.hands[me].every(c=>pt(c)===0);
     const cs=g.hands[me].map(c=>'<div class="pk'+(selT===cid(c)?' sel':'')+'" onclick="selTr(\''+cid(c)+'\')">'+cardH(c)+SUN[c.s]+'</div>').join('');
-    return '<div class="mp"><h2>Choose trump</h2><p class="note">Pick a card to set the trump suit. The card stays in your hand and you can play it normally. Or choose an option below.</p><div class="pick">'+cs+'</div><div class="opt'+(selT==='NT'?' sel':'')+'" onclick="selTr(\'NT\')"><b>Joker: no trump</b><small>No suit is trump this deal.</small></div><div class="opt'+(selT==='S7'?' sel':'')+'" onclick="selTr(\'S7\')"><b>7th card</b><small>Your 7th card sets trump. You will see it, but you cannot play it until someone asks for trump or it is the last trick.</small></div>'+(w7?'<div class="opt sel" style="cursor:default"><b>No point cards in your hand</b><small>None of your cards is a J, 9, A or 10. Cancel this deal and redeal, or continue with the 7th card as trump. If you continue, everyone is told.</small></div><button class="pri" style="width:100%;margin-top:12px" onclick="act({t:\'no7\',c:1})">Cancel this deal</button><button style="width:100%;margin-top:8px" onclick="confirmW()">Continue anyway</button>':'')+'<button class="pri" style="width:100%;margin-top:12px"'+(ok?'':' disabled')+(w7?' hidden':'')+' onclick="confirmT()">'+(selT==='NT'?'Play with no trump':selT==='S7'?'Use my 7th card as trump':sc?'Set '+SU[sc.s]+' as trump':'Select an option')+'</button></div>';
+    return '<div class="mp"><h2>Choose trump</h2><p class="note">Pick a card to set the trump suit. The card stays in your hand and you can play it normally. Or choose an option below.</p><div class="pick">'+cs+'</div><div class="opt'+(selT==='NT'?' sel':'')+'" onclick="selTr(\'NT\')"><b>Joker: no trump</b><small>No suit is trump this deal.</small></div><div class="opt'+(selT==='S7'?' sel':'')+'" onclick="selTr(\'S7\')"><b>7th card</b><small>Your 7th card sets trump. You will see it, but you cannot play it until someone asks for trump or it is the last trick.</small></div>'+(w7?'<div class="opt sel" style="cursor:default"><b>No trump-suit point card</b><small>None of your cards is a J, 9, A or 10 of the trump suit. Cancel this deal and redeal, or continue with the 7th card as trump. If you continue, everyone is told.</small></div><button class="pri" style="width:100%;margin-top:12px" onclick="act({t:\'no7\',c:1})">Cancel this deal</button><button style="width:100%;margin-top:8px" onclick="confirmW()">Continue anyway</button>':'')+'<button class="pri" style="width:100%;margin-top:12px"'+(ok?'':' disabled')+(w7?' hidden':'')+' onclick="confirmT()">'+(selT==='NT'?'Play with no trump':selT==='S7'?'Use my 7th card as trump':sc?'Set '+SU[sc.s]+' as trump':'Select an option')+'</button></div>';
   }
   if(g.phase==='over'&&dismissId!==g.id){
     ml=true;
