@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f4a3e">
+<title>29 Card Game</title>
+<style>
+:root{--bg:#eef2f1;--sf:#fff;--tx:#14231f;--mut:#566761;--felt:#16604f;--felt2:#0e4538;--ac:#e0a526;--act:#1d6b57;--ln:#14231f26;--cw:clamp(46px,14.5vw,60px);--tw:clamp(42px,12.5vw,52px);--sr:94px;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a110f;--sf:#17221f;--tx:#e6efec;--mut:#98aaa4;--felt:#12513f;--felt2:#0a3329;--act:#2f9a7e;--ln:#e6efec26}}
+:root[data-theme="dark"]{--bg:#0a110f;--sf:#17221f;--tx:#e6efec;--mut:#98aaa4;--felt:#12513f;--felt2:#0a3329;--act:#2f9a7e;--ln:#e6efec26}
+html,body{height:100%;margin:0;overscroll-behavior:none}
+body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+#app{max-width:480px;height:100%;margin:0 auto;display:flex;flex-direction:column;position:relative}
+#game{position:relative;display:flex;flex-direction:column;height:100%}
+#lobby{flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:24px;overflow:auto}
+.homeLink{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;color:var(--mut);text-decoration:none;font-size:13px;font-weight:600;background:var(--sf);border:1px solid var(--ln);padding:7px 12px;border-radius:999px}
+.logo{text-align:center;margin-bottom:8px}
+.logo b{display:block;font-size:76px;line-height:1;font-weight:800;letter-spacing:-3px}
+.logo span{font-size:26px;letter-spacing:8px}
+.logo .r{color:#d2453a}
+.lcard{background:var(--sf);border-radius:18px;padding:14px;border:1px solid var(--ln)}
+#bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 14px 4px}
+#chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{background:var(--sf);border:1px solid var(--ln);border-radius:14px;padding:4px 10px;font-size:13px;white-space:nowrap}
+.chip b{font-weight:700}
+.chip.x{background:var(--ac);color:#241a00;border-color:var(--ac)}
+#strip{display:flex;gap:8px;padding:4px 14px 8px}
+.tm{flex:1;background:var(--sf);border:1px solid var(--ln);border-radius:14px;padding:6px 10px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.tm.me{border-color:var(--act)}
+.tm small{color:var(--mut);width:100%;font-size:11px}
+.tm b{font-size:22px}
+.tm b i{font-style:normal;font-size:13px;color:var(--mut);font-weight:500}
+.tm span{margin-left:auto;font-size:12px;color:var(--mut)}
+#table{position:relative;flex:1;min-height:0;margin:0 10px;border-radius:26px;background:radial-gradient(ellipse at center,var(--felt) 0%,var(--felt2) 100%);box-shadow:inset 0 0 0 3px #0003,0 4px 14px #0003;color:#fff}
+.seat{position:absolute;text-align:center;font-size:13px;z-index:2}
+#s2{top:10px;left:50%;transform:translateX(-50%)}
+#s1{right:8px;top:50%;transform:translateY(-50%)}
+#s3{left:8px;top:50%;transform:translateY(-50%)}
+.av{width:44px;height:44px;border-radius:50%;background:#ffffff22;border:2px solid #ffffff55;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;margin:0 auto 3px;position:relative;transition:box-shadow .2s}
+.on .av{border-color:var(--ac);box-shadow:0 0 0 4px #e0a52666}
+.cnt{position:absolute;right:-7px;bottom:-5px;background:#000a;border-radius:10px;font-size:11px;font-weight:600;padding:1px 6px}
+.sn{max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sn small{display:block;font-size:11px;color:inherit;opacity:.75;line-height:1.2}
+.pic{display:block;width:100%;height:100%;border-radius:50%;overflow:hidden}
+.pic svg{display:block;width:100%;height:100%}
+#s0{left:50%;transform:translateX(-50%);bottom:8px}
+.avg{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.avb{padding:0;min-height:0;border:3px solid transparent;border-radius:50%;background:none;width:100%;aspect-ratio:1}
+.avb.sel{border-color:var(--ac)}
+#center{position:absolute;inset:0}
+#cc{position:absolute;inset:0}
+#fly{position:absolute;inset:0;z-index:6;pointer-events:none}
+#cc .card,#fly .card{position:absolute;transform:translate(-50%,-50%)}
+#cc .card,#fly .card{--cw:var(--tw)}
+.s0{left:calc(50% + var(--tw)*.3);top:max(calc(100% - var(--sr) - var(--tw)*.71),calc(50% + 4px))}.s1{left:70%;top:50%}.s2{left:calc(50% - var(--tw)*.3);top:min(calc(var(--sr) + var(--tw)*.71),calc(50% - 4px))}.s3{left:30%;top:50%}
+#fly .card{transition:left .7s ease-in,top .7s ease-in,opacity .7s ease-in,transform .7s ease-in}
+.bonus{position:absolute;transform:translate(-50%,-50%);font-weight:800;font-size:26px;color:#ffd15c;opacity:0;transition:opacity .4s .3s;text-shadow:0 1px 4px #000}
+.in0{animation:i0 .35s ease-out}.in1{animation:i3 .35s ease-out}.in2{animation:i2 .35s ease-out}.in3{animation:i1 .35s ease-out}
+@keyframes i0{from{margin-top:150px;opacity:0}}@keyframes i1{from{margin-left:-150px;opacity:0}}
+@keyframes i2{from{margin-top:-150px;opacity:0}}@keyframes i3{from{margin-left:150px;opacity:0}}
+@media (prefers-reduced-motion:reduce){.in0,.in1,.in2,.in3{animation:none}#fly .card{transition:none}}
+#tc{position:absolute;left:12px;top:10px;font-size:11px;text-align:center;opacity:.9}
+.card{position:relative;width:var(--cw);height:calc(var(--cw)*1.42);background:linear-gradient(160deg,#fff 0%,#efede5 100%);color:#1b1f1d;border-radius:calc(var(--cw)*.13);border:1px solid #0004;font-family:Georgia,"Times New Roman",serif;box-shadow:0 2px 6px #0007,inset 0 0 0 2px #fff;flex:none;overflow:hidden}
+.cn{position:absolute;left:calc(var(--cw)*.07);top:calc(var(--cw)*.05);width:calc(var(--cw)*.3);display:flex;flex-direction:column;align-items:center;line-height:1}
+.cn b{font-size:calc(var(--cw)*.3);font-weight:700}
+.cn i{font-style:normal;font-size:calc(var(--cw)*.26);margin-top:1px}
+.cn.bt{left:auto;top:auto;right:calc(var(--cw)*.07);bottom:calc(var(--cw)*.05);transform:rotate(180deg)}
+.pp{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:calc(var(--cw)*.62);line-height:1}
+.pp.md{flex-direction:column;font-size:calc(var(--cw)*.3)}
+.pp.md::before{content:"";position:absolute;width:calc(var(--cw)*.6);height:calc(var(--cw)*.86);border:1.5px solid currentColor;border-radius:calc(var(--cw)*.1);opacity:.35}
+.pp.md b{font-size:calc(var(--cw)*.48);font-weight:700}
+.pp.md i{font-style:normal}
+.pv{position:absolute;left:50%;bottom:calc(var(--cw)*.05);transform:translateX(-50%);font:700 calc(var(--cw)*.19)/1 system-ui,sans-serif;background:#1b1f1d14;color:#51635d;border-radius:8px;padding:2px 5px}
+.card.r{color:#c4332b}
+
+.back{background:radial-gradient(circle,#e0a526 0 3px,transparent 4px),repeating-linear-gradient(45deg,#24457f,#24457f 4px,#31609e 4px,#31609e 8px);border:2px solid #fff;width:30px;height:42px}
+.ts{font-size:26px;line-height:1;background:#fff;color:#14231f;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;margin:2px auto 0}
+.ts.r{color:#c0392b}
+#msg{padding:8px 16px 0;font-size:14px;line-height:1.35;min-height:20px;text-align:center}
+#hint{padding:0 16px;font-size:14px;color:var(--mut);text-align:center;min-height:17px;margin-top:2px}
+#dock{padding:4px 10px 12px}
+#act{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;margin:6px 0;min-height:4px}
+#act b{min-width:34px;text-align:center;font-size:22px}
+#hand{display:flex;justify-content:center;padding-top:14px;min-height:calc(var(--cw)*1.42 + 16px)}
+#hand .card{margin-left:calc(var(--cw)*-.34);cursor:pointer;transition:transform .12s}
+#hand .card:first-child{margin-left:0}
+#hand .ok{transform:translateY(-12px);box-shadow:0 8px 14px #0008,0 0 0 2px var(--ac)}
+#hand .ok:active{transform:translateY(-20px) scale(1.05)}
+#hand .dim{opacity:.4;filter:grayscale(.6)}
+#hand .lock{margin-left:12px;cursor:default;outline:2px dashed var(--ac);outline-offset:1px}
+#hand .lock::after{content:"locked";position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);background:#14231fd0;color:#fff;font:600 calc(var(--cw)*.17)/1 system-ui,sans-serif;text-align:center;padding:4px 0}
+button,input,textarea{box-sizing:border-box;font:inherit;font-size:15px;border-radius:22px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);padding:0 18px;min-height:44px}
+.form-group{width:100%}.form-group input{max-width:100%}
+button{cursor:pointer;font-weight:600}
+button:active{transform:scale(.97)}
+button:disabled{opacity:.45}
+button:focus-visible,input:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+button.pri{background:var(--act);color:#fff;border-color:var(--act)}
+button.gold{background:var(--ac);color:#241a00;border-color:var(--ac)}
+button.sm{min-height:34px;font-size:13px;padding:0 14px}
+input{width:100%;text-align:center;-webkit-user-select:text;user-select:text}
+.res{text-align:center;line-height:1.5;width:100%;font-size:14px}
+.seatrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--ln)}
+.note{font-size:13px;color:var(--mut);line-height:1.5;text-align:center;margin:0}
+#sheet{position:fixed;inset:0;z-index:30;display:flex;align-items:flex-end;background:#0009}
+.pn{background:var(--bg);width:100%;max-width:480px;margin:0 auto;border-radius:24px 24px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));max-height:82%;overflow:auto;-webkit-user-select:text;user-select:text}
+.pn h2{margin:0 0 6px;font-size:18px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:6px 0}
+th,td{padding:6px;border-bottom:1px solid var(--ln);text-align:center}
+th:first-child,td:first-child{text-align:left}
+small{color:var(--mut)}
+details{font-size:14px;line-height:1.5;color:var(--mut);margin-top:10px}
+summary{cursor:pointer;color:var(--tx);font-weight:600}
+.mb{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:#000b;padding:20px}
+.mp{background:var(--bg);border-radius:26px;padding:22px 18px;width:100%;max-width:380px;text-align:center;border-top:6px solid var(--ac)}
+.mb.pop .mp{animation:pop .25s ease-out}
+.mp.win{border-top-color:var(--act)}.mp.lose{border-top-color:#d2453a}
+.mp h2{margin:0 0 6px;font-size:22px}
+.mp p{margin:6px 0;font-size:14px;line-height:1.45}
+.big{font-size:52px;font-weight:800;line-height:1.1;margin-top:6px}
+.win .big{color:var(--act)}.lose .big{color:#d2453a}
+.pick{display:flex;gap:10px;justify-content:center;margin:16px 0}
+.pk{text-align:center;font-size:12px;color:var(--mut);cursor:pointer;width:calc(var(--cw) + 6px)}
+.pk .card{margin:0 auto 6px;transition:transform .12s}
+.pk.sel .card{outline:3px solid var(--ac);transform:translateY(-8px)}
+.pk.sel{color:var(--tx);font-weight:700}
+.mp{max-height:92vh;overflow:auto}
+.opt{text-align:left;border:2px solid var(--ln);border-radius:14px;padding:10px 12px;margin-top:8px;cursor:pointer;background:var(--sf)}
+.opt.sel{border-color:var(--ac)}
+.opt b{display:block;font-size:15px}
+.opt small{display:block;margin-top:2px;line-height:1.35}
+#bar{flex-wrap:wrap}
+.rb{display:flex;gap:5px;margin-left:auto}
+.rb .sm{padding:0 10px}
+#hand .sel2{transform:translateY(-26px) scale(1.06);z-index:3;box-shadow:0 12px 18px #000a,0 0 0 3px var(--ac)}
+.qb{width:100%;display:flex;gap:6px;justify-content:center}
+.ltbox{position:relative;height:260px;margin:8px 0;--sr:60px;--tw:60px}
+.ltbox .card{position:absolute;transform:translate(-50%,-50%);--cw:60px}
+.win2{outline:3px solid var(--ac)}
+#rx{position:absolute;top:52px;right:14px;z-index:15;background:var(--sf);border:1px solid var(--ln);border-radius:22px;padding:6px;display:flex;gap:2px;flex-wrap:wrap;box-shadow:0 6px 18px #0006}
+#rx button{min-height:44px;width:44px;padding:0;font-size:26px;border:none;background:none;display:flex;align-items:center;justify-content:center;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui,sans-serif}
+#dlg{z-index:50}
+.dlgbtns{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.dlgbtns button{flex:1;min-width:120px}
+#chatpop{position:absolute;top:56px;right:14px;z-index:15;width:min(250px,calc(100% - 28px));background:var(--sf);border:1px solid var(--ln);border-radius:18px;box-shadow:0 6px 18px #0006;padding:8px;display:flex;flex-direction:column;gap:6px}
+#qchat{display:flex;flex-direction:column;gap:4px}
+#qchat button{text-align:left;min-height:40px;padding:8px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--ln);font-size:14px;color:inherit}
+#qchat button.sel{border-color:var(--ac);color:var(--ac);font-weight:700}
+#chatrow{display:flex;gap:6px}
+#chatrow input{flex:1;min-width:0;min-height:40px;border-radius:16px;text-align:left;padding:0 14px;font-size:16px}
+#chatrow button{min-height:40px;border-radius:16px;padding:0 16px}
+.chatfab{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:20;width:52px;height:52px;border-radius:50%;font-size:24px;padding:0;box-shadow:0 6px 18px #0006;line-height:1}
+.dots{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#fff;border-radius:10px;padding:4px 7px;display:flex;gap:3px;box-shadow:0 1px 4px #0006;z-index:3}
+.dots i{width:5px;height:5px;border-radius:50%;background:#14231f;animation:bl 1s infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes bl{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+.bub{position:absolute;z-index:8;background:#fff;color:#111;border-radius:18px;padding:4px 10px;font-size:clamp(24px,7vw,34px);line-height:1.1;box-shadow:0 2px 8px #0006;animation:bp 2.4s ease-out forwards;pointer-events:none;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui,sans-serif}
+.bub.chat{font-size:14px;line-height:1.35;max-width:190px;white-space:normal;word-break:break-word;font-family:inherit;text-align:left;padding:8px 12px;border-radius:14px;animation-duration:4s}
+.b0{left:calc(50% + 34px);bottom:12px}.b1{right:62px;top:40%}.b2{left:calc(50% + 34px);top:14px}.b3{left:62px;top:40%}
+.bub.lb{left:auto;right:14px;top:auto;bottom:84px}
+@keyframes bp{0%{transform:scale(.4);opacity:0}12%{transform:scale(1.1);opacity:1}20%{transform:scale(1)}85%{opacity:1}100%{opacity:0;transform:translateY(-12px)}}
+@media (prefers-reduced-motion:reduce){.dots i,.bub{animation:none}}
+.late{animation:fin .35s 1.2s both}
+@keyframes pop{from{transform:scale(.9);opacity:0}}@keyframes fin{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){.mp,.mb.pop .mp,.late{animation:none}}
+/* trump reveal animation */
+#rv{position:absolute;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;pointer-events:none;border-radius:26px;background:radial-gradient(circle at 50% 50%,#000a 0%,#0007 70%);animation:rvbg 2.5s ease-in-out forwards}
+.rvb{display:flex;flex-direction:column;align-items:center;gap:14px;perspective:700px;animation:rvout 2.5s ease-in forwards}
+.rvk{position:relative;width:92px;height:130px;animation:rvflip 2.5s cubic-bezier(.3,.1,.2,1) forwards}
+.rvf{position:absolute;inset:0;border-radius:12px;border:2px solid #fff;box-shadow:0 8px 24px #000a}
+.rvbk{animation:rvbk 2.5s ease-in forwards;background:radial-gradient(circle,#e0a526 0 5px,transparent 6px),repeating-linear-gradient(45deg,#24457f,#24457f 6px,#31609e 6px,#31609e 12px)}
+.rvk{--cw:92px}
+.rvfr{transform:scaleX(0);border:0;animation:rvfr 2.5s ease-out forwards,rvglow 2.5s ease-out forwards}
+.tface{width:100%;height:100%;border-radius:12px;background:linear-gradient(160deg,#fff 0%,#efede5 100%);color:#1b1f1d;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Georgia,"Times New Roman",serif}
+.tface.r{color:#c4332b}.tface b{font-size:58px;line-height:1;font-weight:400}.tface small{color:inherit;font-size:12px;font-weight:700;margin-top:6px;font-family:system-ui,sans-serif}
+.rvfr .card{width:100%;height:100%;border-radius:12px}
+.rvt{text-align:center;color:#fff;font-weight:800;font-size:20px;text-shadow:0 2px 8px #000;opacity:0;animation:rvtx 2.5s ease-out forwards}
+.rvt small{display:block;font-size:13px;font-weight:600;opacity:.85;margin-top:3px}
+.ts.hid{visibility:hidden}
+.ts.pop{animation:tspop .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes rvbg{0%{opacity:0}12%{opacity:1}82%{opacity:1}100%{opacity:0}}
+@keyframes rvout{0%,80%{transform:scale(1);opacity:1}100%{transform:scale(.5);opacity:0}}
+@keyframes rvflip{0%{transform:translateY(40px) scale(.4);opacity:0}14%{transform:translateY(0) scale(1);opacity:1}26%{transform:rotate(-4deg)}34%{transform:rotate(4deg)}46%{transform:translateY(-6px) scale(1.25) rotate(0)}68%,100%{transform:translateY(0) scale(1.15)}}
+@keyframes rvbk{0%,44%{transform:scaleX(1)}56%,100%{transform:scaleX(0)}}
+@keyframes rvfr{0%,56%{transform:scaleX(0)}68%,100%{transform:scaleX(1)}}
+@keyframes rvglow{0%,55%{box-shadow:0 8px 24px #000a}68%{box-shadow:0 0 0 5px #e0a526,0 0 40px 14px #e0a526aa}100%{box-shadow:0 0 0 3px #e0a526,0 0 22px 6px #e0a52688}}
+@keyframes rvtx{0%,56%{opacity:0;transform:translateY(8px)}70%,100%{opacity:1;transform:none}}
+@keyframes tspop{from{transform:scale(0)}}
+@media (prefers-reduced-motion:reduce){#rv,.rvb,.rvk,.rvbk,.rvfr,.rvt,.ts.pop{animation:none}.rvbk{display:none}.rvfr{transform:none}.rvk{transform:scale(1.1)}.rvt{opacity:1}}
+/* six-pip match board */
+:root{--poff:#c3cbc8;--pred:#ff3b30;--pblk:#0c0f0e;--pbd:#14231f55}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--poff:#3b4743;--pbd:#e6efec77}}
+:root[data-theme="dark"]{--poff:#3b4743;--pbd:#e6efec77}
+.pips{display:flex;gap:6px;align-items:center}
+.pip{--d:14px;display:block;width:var(--d);height:var(--d);border-radius:50%;background:var(--poff);border:2px solid transparent;box-sizing:border-box;flex:none}
+.pip.r{background:var(--pred);box-shadow:0 0 8px 1px #ff3b3099,inset 0 0 0 1px #fff4}
+.pip.b{background:var(--pblk);border-color:var(--pbd);box-shadow:0 0 5px 0 #0006}
+.pips.lg{gap:10px}.pips.lg .pip{--d:24px}
+.pips.sm{gap:3px}.pips.sm .pip{--d:10px;border-width:1px}
+.pip.chg{animation:pipc .5s ease-out}
+@keyframes pipc{from{background:var(--pf);border-color:transparent;box-shadow:none;transform:scale(1.4)}}
+.pips.done{animation:pdone 1.2s ease-out}
+.pips.done.r{--fc:#ff3b30}.pips.done.k{--fc:#000}
+@keyframes pdone{35%{transform:scale(1.1);filter:drop-shadow(0 0 7px var(--fc))}}
+.pips.dly .pip.chg,.pips.dly.done{animation-delay:1.2s;animation-fill-mode:backwards}
+.tm .pips{width:100%;margin-top:3px}
+.board{display:grid;gap:8px;margin:10px 0}
+.bteam{background:var(--sf);border:1px solid var(--ln);border-radius:14px;padding:10px 12px}
+.bteam.me{border-color:var(--act)}
+.bth{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;text-align:left;line-height:1.3}
+.bsc{font-size:26px;font-weight:800;line-height:1}
+.mp .board{text-align:left}
+.ht td:last-child{white-space:nowrap}
+.ht .pips{margin-bottom:3px}
+@media (prefers-reduced-motion:reduce){.pip.chg,.pips.done{animation:none}}
+/* responsive: phone, landscape phone, tablet, desktop */
+#game{overflow-y:auto}#table{min-height:250px}
+@media (hover:hover){#hand .ok:not(.sel2):hover{transform:translateY(-18px)}}
+@media (max-height:700px){.av{width:38px;height:38px;font-size:15px}.sn small{display:none}:root{--sr:80px}}
+@media (min-width:700px){:root{--cw:70px;--tw:64px;--sr:110px}#app{max-width:780px}#lobby{width:100%;max-width:520px;align-self:center}.mp{max-width:460px}.pn{max-width:640px}.av{width:56px;height:56px;font-size:20px}.sn{max-width:120px;font-size:14px}.seat{font-size:14px}#msg{font-size:16px;padding-top:10px}#hint{font-size:15px}.chip{font-size:14px}.tm b{font-size:26px}#table{margin:0 16px}#s2{top:14px}#dock{padding:6px 16px 18px}}
+@media (min-width:700px) and (max-height:700px){:root{--sr:92px}.av{width:44px;height:44px;font-size:17px}}
+@media (min-width:1100px){:root{--cw:82px;--tw:76px;--sr:122px}#app{max-width:1020px}.av{width:64px;height:64px;font-size:22px}}
+@media (min-width:1100px) and (max-height:760px){:root{--cw:66px;--tw:60px;--sr:100px}.av{width:48px;height:48px;font-size:18px}}
+@media (orientation:landscape) and (max-height:520px){:root{--cw:54px;--tw:48px;--sr:76px}#table{flex:none;height:300px}}
+[hidden]{display:none!important}
+</style></head><body>
+<div id="app">
+<div id="lobby"></div>
+<div id="game" hidden>
+<div id="bar"><div id="chips"></div><div class="rb"><button class="sm" id="snb" onclick="toggleSnd()" aria-label="Sound on or off"></button><button class="sm" onclick="toggleRx()" aria-label="Reactions">😀</button><button class="sm" onclick="toggleChat()" aria-label="Chat">💬</button><button class="sm" onclick="openLast()">Last trick</button><button class="sm" onclick="openSheet(true)" aria-label="Open scores">Scores</button><button class="sm" onclick="confirmLeave()" aria-label="Leave game">Leave</button><button class="sm" id="cancelBtn" onclick="confirmCancel()" aria-label="Cancel game" hidden>Cancel</button></div></div>
+<div id="rx" hidden><button onclick="sendReact('👍')">👍</button><button onclick="sendReact('😂')">😂</button><button onclick="sendReact('😮')">😮</button><button onclick="sendReact('👏')">👏</button><button onclick="sendReact('😢')">😢</button><button onclick="sendReact('🔥')">🔥</button></div>
+<div id="strip"></div>
+<div id="table">
+<div class="seat" id="s2"></div><div class="seat" id="s1"></div><div class="seat" id="s3"></div><div class="seat" id="s0"></div>
+<div id="center"><div id="cc"></div><div id="fly"></div></div>
+</div>
+<div id="msg" aria-live="polite"></div><div id="hint"></div>
+<div id="dock"><div id="act"></div><div id="hand"></div></div>
+</div>
+<div id="chatpop" hidden>
+<div id="qchat">
+<button type="button" onclick="pickQuick(this,'Good game!')">Good game!</button>
+<button type="button" onclick="pickQuick(this,'Play fast')">Play fast</button>
+<button type="button" onclick="pickQuick(this,'Nice!')">Nice!</button>
+<button type="button" onclick="pickQuick(this,'Your turn!')">Your turn!</button>
+<button type="button" onclick="pickQuick(this,'Well played!')">Well played!</button>
+</div>
+<div id="chatrow"><input id="chatInput" maxlength="200" placeholder="Type a message..." oninput="clearQuickSel()" onkeydown="if(event.key==='Enter'){event.preventDefault();sendChat()}" aria-label="Chat message"><button class="pri" onclick="sendChat()">Send</button></div>
+</div>
+</div>
+<div id="modal" class="mb" hidden></div>
+<div id="dlg" class="mb" hidden><div class="mp" id="dlgBox"></div></div>
+<div id="lt" class="mb" hidden onclick="this.hidden=true"></div>
+<div id="sheet" hidden onclick="if(event.target===this)openSheet(false)"><div class="pn">
+<h2>Scores</h2><div id="sb"></div><div id="hist" class="note" style="text-align:left"></div>
+<details><summary>How to play</summary>
+<p>Partners sit opposite. Card order in each suit: J, 9, A, 10, K, Q, 8, 7. Points: J 3, 9 2, A 1, 10 1. A deal has 28 points.</p>
+<p>Bid 16–28 on your first 4 cards. Then the opponents may double the stakes (×2) and the bidder may redouble (×4). Single Hand: after trump is set and before the first lead, any player may declare it. They play alone, their partner sits out, and they must win all 8 tricks: +3 game points if they do, −3 if they lose any trick. The bidding team’s pips move one step per game point: 1, 2 or 4 steps at stakes ×1, ×2 or ×4.</p>
+<p>The bidder picks one card to set the trump suit. That card stays in the bidder’s hand and can be played normally, and trump stays hidden. Two other choices: Joker means no trump this deal. 7th card means the suit of the bidder’s 7th card is trump; the bidder sees it but cannot play it until someone asks for trump or it is the last trick. Everyone then gets 4 more cards.</p>
+<p>Follow the lead suit. If you cannot, you may ask for trump before you play. Once you play your card you cannot ask on that turn. After trump is asked, you must play a trump card if you hold one. The highest trump wins, otherwise the highest card of the lead suit. If trump is revealed during a trick, every trump-suit card in that trick counts as trump, even one played before the reveal.</p>
+<p>Royals: K and Q of trump, once your team has won a trick. The bid drops by 4 for the bidding team, or rises by 4 if the opponents declare. Match scoring uses six pips per team. A made bid turns a black pip off, or else an off pip red. A failed bid turns a red pip off, or else an off pip black. Only the bidding team’s pips change. Six red pips (+6) win the match; six black pips (−6) lose it.</p>
+<p>Online: all cards are stored in the shared table data, so use it for friendly games.</p></details>
+<div class="row" style="margin-top:12px"><button class="pri" style="width:100%" onclick="openSheet(false)">Done</button></div>
+</div></div>
+<script>
+const $=id=>document.getElementById(id);
+const cleanN=n=>String(n||'Player').replace(/[<>&"'`\\]/g,'').trim().slice(0,16)||'Player';
+var syncErr=0;
+const SU=['♠','♥','♦','♣'],RK=['J','9','A','10','K','Q','8','7'],PT={J:3,9:2,A:1,10:1};
+const tm=s=>s%2,pt=c=>PT[c.r]||0,red=c=>c.s===1||c.s===2,cid=c=>c.s+c.r;
+let warnSeen=-1,G=null,solo=false,isHost=false,uid=null,uname='',me=0,myTeam=-1,db=null,tdoc=null,code='',seats=[null,null,null,null],lastN={},baseline=true,tmr=0,hb=16,seenQ=-1,seenT=new Set(),wr=false,dirty=false,lmsg='',wasMine=false,selT=null,dismissId=-1,ml=false,myAv=loadAv(),selP=null,seenR=-1,lastId=-1,overId=-1,lastMsg='',lastRx=0,snOn=loadSn(),ws=null,wsOnline=false;
+let lobbyMode=null,roomToken=null,lastSyncAt=0,syncLoop=0;
+let lastModalHTML='',modalPopTimer=0;
+let dlgActions=[],dlgQueue=[],dlgActive=false,dlgActiveSeat=null;
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const srt=h=>h.sort((a,b)=>a.s-b.s||a.o-b.o);
+const openSheet=v=>{$('sheet').hidden=!v};
+
+/* ===== match scoring: six pips per team (pure logic, no UI) =====
+   pip value: 1 = red (+1), -1 = black (-1), 0 = off. Team score = reds - blacks = sum of its pips.
+   Only the bidding team's pips move, one pip per game point. */
+const NP=6;
+let undoArm=false,undoT=0,pipPrev=null,devSeen='',devTm='',shSeen=-1,shTm=-1;
+const freshPips=()=>[Array(NP).fill(0),Array(NP).fill(0)];
+const clonePips=P=>P.map(a=>a.slice());
+const pipScore=a=>a.reduce((x,v)=>x+v,0);
+const pipsFull=(a,v)=>a.every(x=>x===v);
+const sg=n=>n>0?'+'+n:n<0?'\u2212'+(-n):'0';
+function pipStep(a,ok){
+  const n=a.slice();
+  if(ok){const b=n.lastIndexOf(-1);if(b>=0)n[b]=0;else{const o=n.indexOf(0);if(o>=0)n[o]=1}}
+  else{const r=n.lastIndexOf(1);if(r>=0)n[r]=0;else{const o=n.indexOf(0);if(o>=0)n[o]=-1}}
+  return n;
+}
+/* winning team index, or -1 while the match is still open: six red wins, six black loses */
+function pipWinner(P){for(let t=0;t<2;t++){if(pipsFull(P[t],1))return t;if(pipsFull(P[t],-1))return 1-t}return -1}
+/* returns new pips after a finished hand: k game points applied to the bidding team only; stops once the match is decided */
+function applyHand(P,bt,ok,k){
+  const n=clonePips(P);
+  for(let i=0;i<k&&pipWinner(n)<0;i++)n[bt]=pipStep(n[bt],ok);
+  return n;
+}
+/* ===== end match scoring ===== */
+
+/* ===== engine: runs on the host (or locally in solo) ===== */
+/* ===== Single Hand: after trump is set and before the first lead, any player may play alone and must win all 8 tricks.
+   The caller's partner sits out (tricks have 3 cards). Made: +3 game points for the caller's team, failed: -3. ===== */
+const tl=()=>G.sh>=0?3:4;
+const nxt=p=>{let n=(p+1)%4;if(G.sh>=0&&n===(G.sh+2)%4)n=(n+1)%4;return n};
+function shStrong(p){   /* bots only call it with a near-certain hand: six or more top-run tricks */
+  let n=0;for(let s=0;s<4;s++){let o=0;while(G.hands[p].some(c=>c.s===s&&c.o===o))o++;n+=o}return n>=6;
+}
+function declareSh(p){
+  G.sh=p;G.phase='play';G.turn=p;G.shev=1;
+  G.msg='@'+p+' declares SINGLE HAND: alone, all 8 tricks. @'+(p+2)%4+' sits out.';
+}
+function shNext(){G.shi++;if(G.shi>=4){G.phase='play';G.turn=(G.dealer+1)%4}else G.turn=(G.dealer+1+G.shi)%4}
+function botSh(){while(G.phase==='sh'&&G.bots[G.turn]){if(shStrong(G.turn)){declareSh(G.turn);return}shNext()}}
+function openSh(){G.phase='sh';G.shi=0;G.turn=(G.dealer+1)%4;botSh()}
+function newRound(){
+  const d=[];for(let s=0;s<4;s++)RK.forEach((r,o)=>d.push({s,r,o}));sh(d);
+  const o=G,dealer=o.dealer==null?3:(o.dealer+1)%4,f=(dealer+1)%4;
+  G={id:(o.id||0)+1,q:o.q||0,pid:o.pid,names:o.names,bots:o.bots,av:o.av,pips:o.pips||freshPips(),hist:o.hist||[],dealer,last:o.last||null,rq:o.rq||0,react:o.react||null,
+    hands:[0,1,2,3].map(i=>srt(d.slice(i*4,i*4+4))),rest:[0,1,2,3].map(i=>d.slice(16+i*4,20+i*4)),
+    sh:-1,shi:0,shev:0,bid:0,bidder:-1,origBid:[-1,-1,-1,-1],origBidder:[-1,-1,-1,-1],stayedAt:-1,passed:[0,0,0,0],stake:1,dl:[],di:0,trump:-1,tcard:null,nt:false,rev:false,forced:-1,trick:[],n:0,pts:[0,0],tricks:[0,0],roy:false,royBy:-1,
+    phase:'bid',turn:f,msg:'New deal. @'+f+' bids first.'};
+  hb=16;bidNext();
+}
+function nextBidder(p){
+  /* next unpassed player in seat order, skipping the current highest bidder */
+  let next=(p+1)%4;
+  for(let i=0;i<8;i++){
+    if(!G.passed[next]&&next!==G.bidder)break;
+    next=(next+1)%4;
+  }
+  return next;
+}
+function bidNext(){
+  const act=[0,1,2,3].filter(i=>!G.passed[i]);
+  if(G.bid===28||act.length<=1){
+    if(!G.bid){const f=(G.dealer+1)%4;G.bid=16;G.bidder=f;G.passed[f]=0;G.turn=f;G.msg='All passed. @'+f+' must bid 16.';
+      if(!G.origBid){G.origBid=[-1,-1,-1,-1];G.origBidder=[-1,-1,-1,-1]}
+      G.origBid[f]=16;G.origBidder[f]=-1;G.stayedAt=-1}
+    return endBid();
+  }
+  /* advance to first unpassed player */
+  while(G.passed[G.turn])G.turn=(G.turn+1)%4;
+}
+function doBid(p,b){
+  if(!G.origBid){G.origBid=[-1,-1,-1,-1];G.origBidder=[-1,-1,-1,-1]}
+  G.stayedAt=-1;
+  if(b){
+    const prev=G.bidder;
+    // Record the player's first bid and the bidder it surpassed (fixed history).
+    if(G.origBid[p]<0){G.origBid[p]=b;G.origBidder[p]=prev}
+    G.bid=b;G.bidder=p;
+    G.msg=(prev>=0&&prev!==p)?('Raise: @'+p+' '+b+'. @'+prev+' may raise or pass.'):('Bid: @'+p+' '+b+'.');
+    /* a raise goes back to the previous highest bidder (duel continues);
+       only the first bid of the auction moves to the next player in order */
+    G.turn=(prev>=0&&prev!==p&&!G.passed[prev])?prev:nextBidder(p);
+  }else{
+    G.passed[p]=1;G.msg='@'+p+': pass.';
+    G.turn=nextBidder(p);
+  }
+  bidNext();
+}
+/* Stay: a player whose first bid was surpassed may match the current bid,
+   but only once the bidder they originally outbid has passed, and only when
+   that bidder did not just stay at the same value. */
+function canStay(p){
+  if(!G||G.phase!=='bid'||G.turn!==p||G.passed[p])return false;
+  if(G.bidder<0||G.bidder===p||G.bid<16||G.bid>=28)return false;
+  if(!G.origBid||!G.origBidder)return false;
+  if(!(G.origBid[p]>=16)||!(G.bid>G.origBid[p]))return false;
+  const ob=G.origBidder[p];
+  if(ob<0||!G.passed[ob])return false;
+  if(G.stayedAt===G.bid)return false;
+  return true;
+}
+function doStay(p){
+  if(!canStay(p))return;
+  const prev=G.bidder;
+  G.stayedAt=G.bid;
+  G.bidder=p;
+  G.msg='@'+p+' stays at '+G.bid+'. @'+prev+' must raise or pass.';
+  G.turn=prev;
+}
+function est(p){const h=G.hands[p];return h.reduce((a,c)=>a+pt(c),0)}
+function botBid(p){
+  const h=G.hands[p],cnt=[0,0,0,0];h.forEach(c=>cnt[c.s]++);
+  let t=14+est(p)*1.4+(Math.max(...cnt)>=3?2:0)+(h.some(c=>c.r==='J')?1:0)+Math.random()*2-1;
+  if(G.bidder>=0&&G.bidder!==p&&tm(G.bidder)===tm(p))t-=3;
+  t=Math.min(24,Math.round(t));const need=Math.max(16,G.bid+1);
+  return need<=t?need:0;
+}
+/* bidding done -> opponents may double -> bidder may redouble -> trump */
+function endBid(){
+  G.phase='dbl';G.dl=[(G.bidder+1)%4,(G.bidder+3)%4];G.di=0;G.turn=G.dl[0];
+  G.msg='@'+G.bidder+' won the bid at '+G.bid+'. Opponents may double.';
+}
+function doDbl(p,d){
+  if(d){G.stake=2;G.phase='rdbl';G.turn=G.bidder;G.msg='@'+p+' doubles: stakes ×2. @'+G.bidder+' may redouble.';G.dev={n:(G.dev?G.dev.n:0)+1,p,x:2}}
+  else{G.di++;if(G.di>=2)toTrump();else{G.turn=G.dl[G.di];G.msg='@'+p+': no double.'}}
+}
+function doRdbl(p,d){if(d){G.stake=4;G.dev={n:(G.dev?G.dev.n:0)+1,p,x:4}}toTrump(d?'@'+p+' redoubles: stakes ×4. ':(' @'+p+' keeps ×2. '))}
+function toTrump(pre){
+  G.phase='trump';G.turn=G.bidder;
+  G.msg=(pre||(G.stake>1?'':'No double. '))+'@'+G.bidder+' picks a face-down trump card.';
+}
+const botDbl=p=>est(p)>=5||(est(p)>=4&&G.bid>=21);
+const botRdbl=p=>est(p)>=5;
+function botTrump(){
+  const h=G.hands[G.bidder];let bs=-1,bc=null;
+  for(let s=0;s<4;s++){const cs=h.filter(c=>c.s===s);if(!cs.length)continue;
+    const v=cs.length*3+cs.reduce((a,c)=>a+pt(c)*2,0)+(cs.some(c=>c.r==='J')?3:0);
+    if(v>bs){bs=v;bc=cs.slice().sort((a,b)=>b.o-a.o)[0]}}
+  return bc;
+}
+/* Joker = no trump. 7th card = bidder's 7th dealt card is kept aside (seen by the bidder) and sets trump. */
+function setTrumpMode(p,m,w){
+  if(m==='nt'){
+    G.nt=true;G.rev=true;G.trump=-1;
+    G.hands.forEach((h,i)=>{h.push(...G.rest[i]);srt(h)});
+    G.msg='Joker: no trump this deal. The last 4 cards are dealt.';
+  }else{
+    const c=G.rest[p].splice(2,1)[0];G.tcard=c;G.trump=c.s;
+    G.hands.forEach((h,i)=>{h.push(...G.rest[i]);srt(h)});
+    G.msg='Trump comes from the 7th card of @'+p+', kept aside. The last cards are dealt.';
+  }
+  G.phase='play';G.turn=(G.dealer+1)%4;
+  /* 7th-card trump but none of the bidder's other 7 cards is a point card (J, 9, A, 10): cancel or continue */
+  if(m==='7th'&&!w&&G.hands[p].every(c=>pt(c)===0)){G.phase='no7';G.turn=p;G.msg='@'+p+' has no point card among the other 7 cards. Cancel this deal or continue?'}
+  else openSh();
+}
+function setTrump(p,c){
+  G.tcard=null;G.trump=c.s;  /* the chosen card stays in the bidder's hand, playable; only the 7th-card trump is locked */
+  G.hands.forEach((h,i)=>{h.push(...G.rest[i]);srt(h)});
+  G.phase='play';G.turn=(G.dealer+1)%4;G.msg='Trump suit is set and hidden. The last 4 cards are dealt.';openSh();
+}
+/* legal moves. reveal=true only BEFORE the player has played this turn */
+function moves(p){
+  const h=G.hands[p],t=G.trick;
+  if(!t.length)return{cards:h,reveal:false};
+  const f=h.filter(c=>c.s===t[0].c.s);
+  if(f.length)return{cards:f,reveal:false};
+  if(G.rev){
+    if(G.forced===p){const tr=h.filter(c=>c.s===G.trump);if(tr.length)return{cards:tr,reveal:false}}
+    return{cards:h,reveal:false};
+  }
+  return{cards:h,reveal:true};
+}
+function reveal(p){
+  G.rev=true;G.forced=p;
+  if(G.tcard){G.tcs=G.tcard;G.hands[G.bidder].push(G.tcard);srt(G.hands[G.bidder]);G.tcard=null}
+  G.msg='Trump is '+SU[G.trump]+(p===G.bidder?', revealed by @':', asked by @')+p+'. @'+p+' must play now.';
+}
+function canRoy(p){
+  if(G.sh>=0||G.roy||!G.rev||!G.tricks[tm(p)])return false;
+  const h=G.hands[p];return h.some(c=>c.s===G.trump&&c.r==='K')&&h.some(c=>c.s===G.trump&&c.r==='Q');
+}
+function declare(p){
+  G.roy=true;G.royBy=p;G.bid+=tm(p)===tm(G.bidder)?-4:4;
+  G.msg='Royals declared by @'+p+'. The bid is now '+G.bid+'.';
+}
+function cls(x,ls){return x.c.s===G.trump&&G.rev&&ls!==G.trump?2:x.c.s===ls?1:0}  /* G.rev (not x.tr): a trump-suit card played before the reveal still counts once trump is revealed in the same trick */
+function winIdx(t){
+  const ls=t[0].c.s;let b=0;
+  for(let i=1;i<t.length;i++){const a=cls(t[i],ls),z=cls(t[b],ls);if(a>z||(a===z&&a>0&&t[i].c.o<t[b].c.o))b=i}
+  return b;
+}
+const wins=(p,c)=>{const t=G.trick.concat({p,c,tr:G.rev});return t[winIdx(t)].p===p};
+function play(p,c){
+  const h=G.hands[p];h.splice(h.indexOf(c),1);
+  G.trick.push({p,c,tr:G.rev});
+  if(G.forced===p)G.forced=-1;
+  if(G.trick.length<tl())G.turn=nxt(p);
+}
+function resolve(){
+  const w=G.trick[winIdx(G.trick)],v=G.trick.reduce((a,x)=>a+pt(x.c),0);
+  G.pts[tm(w.p)]+=v;G.tricks[tm(w.p)]++;
+  G.last={q:++G.q,w:w.p,v,cards:G.trick.map(x=>({p:x.p,c:x.c}))};
+  G.msg='Trick to @'+w.p+': +'+v+' point'+(v===1?'':'s')+'.';
+  botReact(w.p,v);
+  G.trick=[];G.n++;G.turn=w.p;
+  if(G.n===8||(G.sh>=0&&w.p!==G.sh))return endRound();   /* single hand: the caller losing any trick ends it */
+  if(G.n===7&&!G.rev&&G.trump>=0){if(G.tcard){G.tcs=G.tcard;G.hands[G.bidder].push(G.tcard);G.tcard=null}G.rev=true;G.msg+=' Trump is revealed for the last trick.'}
+}
+function endRound(){
+  const sh=G.sh>=0,bt=tm(sh?G.sh:G.bidder),got=sh?G.tricks[bt]:G.pts[bt],ok=sh?G.tricks[bt]===8:got>=G.bid,k=sh?3:G.stake;
+  const before=clonePips(G.pips);
+  G.pips=applyHand(before,bt,ok,k);G.rev=true;G.phase='over';
+  G.hist.push({n:G.hist.length+1,bt,bid:sh?0:G.bid,got,ok,k,sh:sh?1:0,before,after:clonePips(G.pips)});
+}
+const mw=()=>pipWinner(G.pips);
+/* undo the last completed hand: restore the exact pip states from before it (match status follows from the pips) */
+function undoHand(p){
+  const r=G.hist.pop();G.pips=clonePips(r.before);
+  if(G.phase==='over'){G.dealer=(G.dealer+3)%4;newRound();G.msg='Hand '+r.n+' undone by @'+p+'. Pips restored. New deal: @'+G.turn+' bids first.'}
+  else G.msg='Hand '+r.n+' undone by @'+p+'. Pips restored.';
+}
+function botPlay(p){
+  if(G.phase!=='play'||G.turn!==p||G.trick.length>=tl())return;
+  if(canRoy(p))declare(p);
+  const m=moves(p),t=G.trick;
+  if(m.reveal){
+    /* a bot asks for trump as its own step, before it plays */
+    const w=t.length?t[winIdx(t)]:null,pw=w&&tm(w.p)===tm(p);
+    const has=G.hands[p].some(c=>c.s===G.trump)||(p===G.bidder&&G.tcard);
+    if(!pw&&has&&t.reduce((a,x)=>a+pt(x.c),0)>=1){reveal(p);return commit()}
+  }
+  const cs=m.cards;let pick;
+  if(!t.length){
+    const pool=(!G.rev&&cs.some(c=>c.s!==G.trump))?cs.filter(c=>c.s!==G.trump):cs;
+    pick=pool.slice().sort((a,b)=>a.o-b.o||pt(b)-pt(a))[0];
+  }else{
+    const pw=tm(t[winIdx(t)].p)===tm(p),win=cs.filter(c=>wins(p,c));
+    if(pw)pick=cs.slice().sort((a,b)=>pt(b)-pt(a)||b.o-a.o)[0];
+    else if(win.length)pick=win.sort((a,b)=>(a.s===G.trump)-(b.s===G.trump)||b.o-a.o)[0];
+    else pick=cs.slice().sort((a,b)=>pt(a)-pt(b)||b.o-a.o)[0];
+  }
+  play(p,pick);commit();
+}
+function apply(p,a){
+  if(!G||p<0)return;
+  const t=a.t,h=G.hands[p];
+  if(t==='react'){if(['👍','😂','😮','👏','😢','🔥'].includes(a.e)){G.react={q:++G.rq,p,e:a.e};commit()}return}
+  if(t==='undo'){if(!G.hist.length)return;undoHand(p);commit();return}
+  if(t==='bid'&&G.phase==='bid'&&G.turn===p){const b=+a.b;if(b===0||(b>=Math.max(16,G.bid+1)&&b<=28))doBid(p,b);else return}
+  else if(t==='stay'&&G.phase==='bid'&&G.turn===p)doStay(p);
+  else if(t==='dbl'&&G.phase==='dbl'&&G.turn===p)doDbl(p,!!a.d);
+  else if(t==='rdbl'&&G.phase==='rdbl'&&G.turn===p)doRdbl(p,!!a.d);
+  else if(t==='sh'&&G.phase==='sh'&&G.turn===p){if(a.d)declareSh(p);else{shNext();botSh()}}
+  else if(t==='trump'&&G.phase==='trump'&&G.bidder===p){
+    if(a.m==='7th'&&a.w&&h.every(c=>pt(c)===0)){setTrumpMode(p,'7th',1);G.warn=p;G.msg='@'+p+' has no point cards but wants to continue. Trump is hidden.'}
+    else if(a.m==='nt'||a.m==='7th')setTrumpMode(p,a.m);
+    else{const c=h.find(x=>cid(x)===a.c);if(!c)return;setTrump(p,c)}
+  }
+  else if(t==='no7'&&(G.phase==='no7'||G.phase==='trump')&&G.bidder===p){
+    if(a.c){G.dealer=(G.dealer+3)%4;newRound();G.msg='Deal cancelled: @'+p+' had no point cards for a 7th-card trump. New deal: @'+G.turn+' bids first.'}
+    else if(G.phase==='no7'){G.phase='play';G.turn=(G.dealer+1)%4;G.warn=p;G.msg='@'+p+' has no point cards but wants to continue. Trump is hidden.';openSh()}
+  }
+  else if(G.phase==='play'&&G.trick.length<tl()&&G.turn===p){
+    if(t==='play'){const c=h.find(x=>cid(x)===a.c);if(!c||!moves(p).cards.includes(c))return;play(p,c)}
+    else if(t==='reveal'&&moves(p).reveal)reveal(p);
+    else if(t==='roy'&&canRoy(p))declare(p);
+    else return;
+  }
+  else if(t==='next'&&G.phase==='over'){if(mw()>=0){G.pips=freshPips();G.hist=[]}newRound()}
+  else return;
+  commit();
+}
+function kick(){
+  clearTimeout(tmr);
+  if(!G||!(solo||isHost))return;
+  const bt=i=>G.bots[i],go=(ms,f)=>{tmr=setTimeout(f,ms)};
+  if(G.phase==='bid'&&bt(G.turn))go(900,()=>apply(G.turn,{t:'bid',b:botBid(G.turn)}));
+  else if(G.phase==='dbl'&&bt(G.turn))go(1000,()=>apply(G.turn,{t:'dbl',d:botDbl(G.turn)}));
+  else if(G.phase==='rdbl'&&bt(G.turn))go(1000,()=>apply(G.turn,{t:'rdbl',d:botRdbl(G.turn)}));
+  else if(G.phase==='no7'&&bt(G.bidder))go(1500,()=>apply(G.bidder,{t:'no7',c:Math.random()<.6?1:0}));
+  else if(G.phase==='trump'&&bt(G.bidder))go(1300,()=>apply(G.bidder,Math.random()<.15?(G.hands[G.bidder].every(c=>pt(c)===0)&&Math.random()<.5?{t:'no7',c:1}:{t:'trump',m:'7th',w:1}):{t:'trump',c:cid(botTrump())}));
+  else if(G.phase==='play'){
+    if(G.trick.length===tl())go(1300,()=>{resolve();commit()});
+    else if(bt(G.turn))go(900,()=>botPlay(G.turn));
+  }
+}
+function commit(){
+  if(solo){try{localStorage.setItem(SAVEK,JSON.stringify(G))}catch(e){}}
+  kick();
+  // Propagate state before rendering so a UI error can never block sync.
+  if(!solo&&isHost&&G)sync();
+  try{render()}catch(e){console.error('[v10] render error:',e)}
+}
+
+/* ===== multiplayer plumbing (WebSocket) ===== */
+let inRoom=false;  // true when we've joined/created a room
+
+function openWs(){
+  const proto=location.protocol==='https:'?'wss://':'ws://';
+  ws=new WebSocket(proto+location.host+'/ws');
+  ws.onopen=()=>{wsOnline=true;syncErr=0;
+    if(lmsg&&lmsg.includes('Online tables'))lmsg='';
+    // Rejoin the table after a dropped socket instead of silently leaving it.
+    if(!solo&&inRoom&&code&&roomToken)wSend({type:'resume',roomId:code,seat:me,token:roomToken});
+    render();
+  };
+  ws.onmessage=e=>{try{const d=JSON.parse(e.data);handleServerMsg(d)}catch(er){console.error(er)}};
+  ws.onclose=()=>{wsOnline=false;if(solo)return;syncErr=1;setTimeout(openWs,2000)};
+  ws.onerror=()=>{wsOnline=false;syncErr=1};
+}
+function saveSession(){
+  try{sessionStorage.setItem('g29room',JSON.stringify({code:code,seat:me,token:roomToken,name:uname}))}catch(e){}
+}
+function loadSession(){
+  try{return JSON.parse(sessionStorage.getItem('g29room')||'null')}catch(e){return null}
+}
+function clearSession(){
+  try{sessionStorage.removeItem('g29room')}catch(e){}
+}
+function wSend(obj){
+  if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify(obj));
+}
+function handleServerMsg(d){
+  const t=d.type;
+  if(t==='room-created'||t==='room-joined'){
+    code=d.roomId;
+    seats=d.players||[];
+    // The server tells each client its own seat; never guess by name.
+    if(d.yourSeat!=null)me=d.yourSeat;
+    if(me==null||me<0)me=0;
+    if(d.token)roomToken=d.token;
+    isHost=(me===d.hostSeat);
+    if(me>=0&&myTeam<0)myTeam=me%2;
+    inRoom=true;
+    // Restore a running game after reconnecting/resuming.
+    if(d.gameState&&d.gameState!==''){
+      try{G=JSON.parse(d.gameState);lastSyncAt=Date.now();}catch(e){}
+    }
+    saveSession();
+    if(G&&!solo)render();else renderLobby();
+  }
+  else if(t==='room-updated'){
+    seats=d.players||[];
+    if(d.yourSeat!=null){me=d.yourSeat;myTeam=me%2;}
+    // The host is authoritative, so a room broadcast must not overwrite it.
+    if(!isHost&&d.gameState&&d.gameState!==''){
+      try{
+        G=JSON.parse(d.gameState);lastSyncAt=Date.now();
+      }catch(e){}
+    }
+    if(G&&!solo)render();else renderLobby();
+  }
+  else if(t==='game-started'){
+    // Host signals game start — v10 engine will initialise
+    code=d.roomId;
+    if(d.yourSeat!=null)me=d.yourSeat;
+    isHost=(me===d.hostSeat);
+    seats=d.players||[];
+    // We're now in a game — initialise a fresh round
+    if(isHost){
+      const av=seats.map(p=>p?p.av||0:0);
+      const bots=seats.map(p=>!p);
+      const bn=pickBots(bots.filter(Boolean).length);
+      let bi=0;
+      G={pid:seats.map(p=>p?p.name:null),names:seats.map(p=>p?p.name:bn[bi++]),bots:bots,av:av};
+      newRound();
+      commit();
+      // Immediately push initial state
+      setTimeout(()=>sync(),100);
+    }else{
+      // Non-host: wait for host to send game state
+      lmsg='Waiting for host to start...';
+      renderLobby();
+    }
+  }
+  else if(t==='game-state-sync'){
+    // Full game state broadcast from host. The host is the source of
+    // truth, so ignore its own echo or it can clobber newer local state.
+    if(isHost)return;
+    if(d.state){
+      try{
+        const newState=JSON.parse(d.state);
+        if(G&&JSON.stringify(newState)===JSON.stringify(G)){lastSyncAt=Date.now();return;}
+        G=newState;
+        seats=d.players||seats;
+        if(d.yourSeat!=null)me=d.yourSeat;
+        lastSyncAt=Date.now();
+        console.log('[v10] game-state-sync received: me='+me+', uname='+uname+', G.phase='+G.phase+', G.turn='+G.turn+', G.bid='+G.bid);
+        render();
+      }catch(e){console.error('[v10] game-state-sync parse error:',e)}
+    }
+  }
+  else if(t==='relay-action'){
+    // Host received a relayed action from a non-host player
+    if(isHost){
+      try{
+        const action=JSON.parse(d.action);
+        console.log('[v10] relay-action from seat '+d.from+':', action);
+        apply(d.from, action);
+        commit();
+      }catch(e){console.error('[v10] relay-action error:',e)}
+    }
+  }
+  else if(t==='resume-failed'){
+    clearSession();roomToken=null;inRoom=false;code='';G=null;seats=[null,null,null,null];
+    lmsg=d.message||'Could not resume the table';
+    renderLobby();
+  }
+  else if(t==='room-error'){
+    lmsg=d.message||'Table error';
+    if(G&&!solo)render();else renderLobby();
+  }
+  else if(t==='game-cancelled'){
+    showDialog('Game cancelled',d.message||'The Host has cancelled the game.',[{l:'OK',cls:'pri',fn:finishCancel}],true);
+  }
+  else if(t==='player-left'){
+    const who=d.name||'Player';
+    if(isHost&&G)playerLeftPrompt(d.seat,who);
+    else showDialog('Player left',who+' has left the game.',[{l:'OK',cls:'pri',fn:hideDialog}],false,d.seat);
+  }
+  else if(t==='host-changed'){
+    if(d.players)seats=d.players;
+    if(d.state){try{G=JSON.parse(d.state);lastSyncAt=Date.now();}catch(e){}}
+    if(d.hostSeat!=null)isHost=(me===d.hostSeat);
+    if(d.leftSeat!=null&&d.leftSeat!==me){
+      if(isHost&&G)playerLeftPrompt(d.leftSeat,d.leftName||'Player');
+      else if(G)showDialog('Host changed',(d.leftName||'The host')+' left the game. The game continues with a new host.',[{l:'OK',cls:'pri',fn:hideDialog}]);
+    }
+    if(isHost&&G){if(G.phase==='sh')botSh();kick();sync();}
+    if(G&&!solo)render();else renderLobby();
+  }
+  else if(t==='seat-bot'){
+    // The host converted a seat to a bot; the state sync will show it.
+  }
+  else if(t==='player-status'){
+    // Update player connection status
+    if(d.seat!==undefined){
+      seats[d.seat]={...seats[d.seat],connected:d.connected};
+    }
+    if(d.connected){
+      dlgQueue=dlgQueue.filter(q=>q.seat!==d.seat);
+      if(dlgActive&&dlgActiveSeat===d.seat)hideDialog();
+    }
+  }
+  else if(t==='reaction'){
+    if(d.seat!=null&&d.e)bubble(seatRel(d.seat),d.e);
+  }
+  else if(t==='chat-message'){
+    const txt=String(d.message||'').slice(0,200);
+    if(!txt)return;
+    if(G||inRoom)bubble(seatRel(d.seat),txt,true);
+  }
+}
+async function sync(){
+  if(!ws||ws.readyState!==WebSocket.OPEN)return;
+  if(wr){dirty=true;return}
+  wr=true;
+  try{
+    console.log('[v10] sync: sending game-state, G.phase='+G.phase+', G.turn='+G.turn);
+    wSend({type:'game-state',state:JSON.stringify(G)});
+    syncErr=0;
+  }catch(e){syncErr=1;console.error('[v10] sync error:',e)}
+  wr=false;
+  if(dirty){dirty=false;sync()}
+  else if(syncErr){setTimeout(sync,3000);if(G)render()}
+}
+function act(a){
+  if(solo||isHost){console.log('[v10] act (host):', a); return apply(me,a)}
+  if(me<0)return;
+  console.log('[v10] act (client):', a, 'me='+me);
+  wSend({type:'action',a:JSON.stringify(a)});
+}
+/* Keep the table in sync: the host re-broadcasts periodically, and a guest
+   that has not heard anything for a while asks the server for the latest state. */
+function startSyncLoop(){
+  clearInterval(syncLoop);
+  syncLoop=setInterval(()=>{
+    if(!wsOnline||solo||!inRoom)return;
+    if(isHost&&G)sync();
+    else if(!isHost&&G&&Date.now()-lastSyncAt>4000)wSend({type:'resync'});
+  },2000);
+}
+function wake(){
+  if(!wsOnline||solo||!inRoom)return;
+  if(isHost&&G){kick();sync()}
+  else wSend({type:'resync'});
+}
+if(typeof document!=='undefined'&&document.addEventListener){
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)wake()});
+}
+if(typeof window!=='undefined'&&window.addEventListener){
+  window.addEventListener('online',wake);
+  window.addEventListener('pageshow',wake);
+}
+function sendJoin(c){
+  if(!wsOnline){
+    if(!ws||ws.readyState===WebSocket.CLOSED||ws.readyState===WebSocket.CLOSING)openWs();
+    lmsg='Connecting...';
+    renderLobby();
+    setTimeout(()=>sendJoin(c),600);
+    return;
+  }
+  lmsg='';
+  wSend({type:'join-room',roomId:c,playerName:uname,team:myTeam>=0?myTeam:null});
+}
+function createTable(){
+  const nameInput=$('playerName');
+  const name=nameInput?nameInput.value.trim():uname;
+  if(!name){lmsg='Please enter your name';renderLobby();return}
+  uname=name;  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  code=Array.from({length:6},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+  lobbyMode=null;
+  sendJoin(code);
+}
+function joinT(){
+  const nameInput=$('playerName');
+  const codeInput=$('code');
+  const name=nameInput?nameInput.value.trim():uname;
+  if(!name){lmsg='Please enter your name';renderLobby();return}
+  uname=name;
+  const c=codeInput?codeInput.value.trim().toUpperCase().replace(/[^A-Z0-9]/g,''):code;
+  if(!c){lmsg='Enter a table code';renderLobby();return}
+  code=c;
+  lobbyMode=null;
+  sendJoin(code);
+}
+function setLobbyMode(m){
+  const nameInput=$('playerName');
+  if(nameInput&&nameInput.value.trim())uname=nameInput.value.trim();
+  lobbyMode=m;lmsg='';
+  renderLobby();
+}
+function nameGate(){
+  const inp=$('playerName');
+  const ok=!!(inp&&inp.value.trim());
+  ['createBtn','joinModeBtn','joinBtn','soloBtn'].forEach(id=>{const b=$(id);if(b)b.disabled=!ok});
+}
+function leaveTable(){
+  if(!solo&&inRoom&&wsOnline)wSend({type:'leave-game'});
+  clearTimeout(tmr);
+  inRoom=false;code='';G=null;seats=[null,null,null,null];roomToken=null;lmsg='';
+  if(solo){try{localStorage.removeItem(SAVEK)}catch(e){}}
+  solo=false;
+  clearSession();
+  if($('chatpop'))$('chatpop').hidden=true;
+  if(dlgActive)hideDialog(true);
+  const oldWs=ws;
+  ws=null;wsOnline=false;
+  if(oldWs){try{oldWs.onclose=null;setTimeout(()=>{try{oldWs.close()}catch(e){}},100)}catch(e){}}
+  render();
+}
+/* ===== leave / cancel / host-change dialogs ===== */
+function escH(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function showDialog(title,body,buttons,priority,seat){
+  const req={title:title,body:body,buttons:buttons||[{l:'OK',cls:'pri',fn:hideDialog}],seat:(seat==null?null:seat)};
+  if(dlgActive){
+    if(priority){dlgQueue=[];hideDialog(true);}
+    else{dlgQueue.push(req);return;}
+  }
+  renderDialog(req);
+}
+function renderDialog(req){
+  dlgActive=true;dlgActiveSeat=(req.seat==null?null:req.seat);
+  dlgActions=(req.buttons||[]).map(b=>b.fn);
+  let h='<h2>'+escH(req.title)+'</h2>';
+  if(req.body)h+='<p>'+escH(req.body)+'</p>';
+  h+='<div class="dlgbtns">'+(req.buttons||[]).map((b,i)=>'<button class="'+(b.cls||'')+'" onclick="dlgAction('+i+')">'+escH(b.l)+'</button>').join('')+'</div>';
+  $('dlgBox').innerHTML=h;$('dlg').hidden=false;
+}
+function hideDialog(keepQueue){
+  $('dlg').hidden=true;$('dlgBox').innerHTML='';
+  dlgActive=false;dlgActiveSeat=null;dlgActions=[];
+  if(!keepQueue&&dlgQueue.length){const n=dlgQueue.shift();renderDialog(n);}
+}
+function dlgAction(i){
+  const fn=dlgActions[i];
+  hideDialog();
+  if(fn)try{fn()}catch(e){console.error(e)}
+}
+function confirmLeave(){
+  if(solo){
+    showDialog('Leave game?','This will abandon your solo game. Are you sure?',[
+      {l:'Leave',cls:'pri',fn:doLeaveGame},{l:'Stay',fn:hideDialog}
+    ]);
+    return;
+  }
+  showDialog('Leave game?','Your seat will be offered to a bot. Are you sure?',[
+    {l:'Leave',cls:'pri',fn:doLeaveGame},{l:'Stay',fn:hideDialog}
+  ]);
+}
+function confirmCancel(){
+  if(!isHost||!G||solo)return;
+  showDialog('Cancel the game?','This ends the game for everyone.',[
+    {l:'Cancel game',cls:'pri',fn:()=>{hideDialog();wSend({type:'cancel-game'})}},
+    {l:'Keep playing',fn:hideDialog}
+  ]);
+}
+function doLeaveGame(){
+  hideDialog();
+  if(!solo&&inRoom&&wsOnline)wSend({type:'leave-game'});
+  setTimeout(leaveTable,150);
+}
+function playerLeftPrompt(seat,name){
+  showDialog((name||'Player')+' has left the game','Do you want to continue playing with a bot in their place?',[
+    {l:'Continue with Bot',cls:'pri',fn:()=>{hideDialog();botSeat(seat)}},
+    {l:'Exit Game',fn:()=>{hideDialog();wSend({type:'cancel-game'})}}
+  ],false,seat);
+}
+function botSeat(seat){
+  if(!G||!isHost||solo)return;
+  if(!G.bots)G.bots=[false,false,false,false];
+  G.bots[seat]=true;
+  G.msg=(G.names&&G.names[seat]?G.names[seat]:('Seat '+(seat+1)))+' is now a bot.';
+  if(!solo&&inRoom&&wsOnline)wSend({type:'bot-seat',seat:seat});
+  if(G.phase==='sh')botSh();
+  commit();
+}
+function finishCancel(){
+  hideDialog(true);
+  clearTimeout(tmr);
+  G=null;inRoom=false;code='';seats=[null,null,null,null];roomToken=null;lmsg='';
+  solo=false;
+  clearSession();
+  if($('chatpop'))$('chatpop').hidden=true;
+  render();
+}
+function sit(i){
+  wSend({type:'sit',seat:i});
+  // If this player hasn't chosen a team yet, assign them to the chosen team
+  if(myTeam<0&&seats[i]&&(typeof seats[i].name==='string'&&seats[i].name===uname)){
+    myTeam=i%2;
+  }
+  // Set avatar on server
+  wSend({type:'set-avatar',avatar:myAv});
+}
+function joinTeam(t){
+  myTeam=t;
+  // Find first available seat on chosen team
+  const teamSeats=[0,2].filter(i=>t===0).concat([1,3].filter(i=>t===1));
+  for(const i of teamSeats){if(seats[i]===null){wSend({type:'sit',seat:i});return}}
+  // Team full, pick any empty seat
+  for(let i=0;i<4;i++){if(seats[i]===null){wSend({type:'sit',seat:i});return}}
+}
+function hostStart(){
+  if(seats.filter(s=>s).length<2){lmsg='Need at least 2 players';return renderLobby()}
+  wSend({type:'start-game'});
+}
+const SAVEK='g29solo';
+const hasSave=()=>{try{return !!localStorage.getItem(SAVEK)}catch(e){return false}};
+function resumeSolo(){
+  if(inRoom&&ws){
+    inRoom=false;code='';G=null;seats=[];
+  }
+  try{G=JSON.parse(localStorage.getItem(SAVEK));solo=true;isHost=true;me=0;commit()}catch(e){G=null;lmsg='Could not resume that game.';renderLobby()}
+}
+function startSolo(){
+  const nameInput=$('playerName');
+  const name=nameInput?nameInput.value.trim():uname;
+  if(!name){lmsg='Please enter your name';renderLobby();return}
+  uname=name;
+  solo=true;isHost=true;me=0;
+  // Leave any room
+  inRoom=false;code='';G=null;seats=[];
+  const u=new Set([myAv]);
+  const bn=pickBots(3);
+  G={pid:['solo',null,null,null],names:['You',bn[0],bn[1],bn[2]],bots:[false,true,true,true],av:[myAv,nextAv(u),nextAv(u),nextAv(u)]};
+  newRound();commit();
+}
+function renderLobby(){
+  let h='<a class="homeLink" href="/">← All games</a>';
+  h+='<div class="logo"><b>29</b><span>♠<span class="r">♥♦</span>♣</span></div>';
+  h+=avPicker();
+
+  if(solo&&G){
+    // Solo game in progress — shouldn't reach here, but just in case
+    h+='<p class="note">Solo game running.</p>';
+  }else if(solo&&!G){
+    // Solo mode, no game running
+    h+='<div class="lcard"><button class="pri" style="width:100%" onclick="startSolo()">Play solo vs bots</button>'+
+    (hasSave()?'<button class="pri" onclick="resumeSolo()" style="margin-top:8px">Resume solo game</button>':'')+
+    '<button onclick="openSheet(true)" style="margin-top:8px">How to play</button></div>';
+  }else if(inRoom&&code){
+    // In a WebSocket room — show room info and seats
+    h+='<div class="lcard">';
+    h+='<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:4px">';
+    h+='<span id="roomCode" style="font-size:18px;font-weight:800;letter-spacing:4px;color:var(--ac);user-select:all;-webkit-user-select:all">'+code+'</span>';
+    h+='<button class="sm" onclick="copyCode()" style="padding:4px 10px;font-size:12px" aria-label="Copy code">📋</button>';
+    h+='</div>';
+    if(isHost)h+='<small style="color:var(--mut)">You are the host — share this code</small>';
+    else h+='<small style="color:var(--mut)">Joined as '+uname+'</small>';
+
+    // Count human players
+    const humanCount=seats.filter(s=>s!==null).length;
+    // Show team selection if not yet chosen and room has humans but isn't full
+    if(myTeam<0&&humanCount<4&&humanCount>0){
+      const teamASeats=[0,2].filter(i=>seats[i]===null);
+      const teamBSeats=[1,3].filter(i=>seats[i]===null);
+      const canJoinA=teamASeats.length>0;
+      const canJoinB=teamBSeats.length>0;
+      h+='<div style="margin-top:10px;text-align:center"><small style="color:var(--mut)">Choose your team</small><div class="pick" style="margin-top:6px">';
+      if(canJoinA)h+='<div class="pk'+(myTeam===0?' sel':'')+'" onclick="joinTeam(0)"><div style="width:40px;height:56px;border:2px solid var(--ac);border-radius:8px;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--ac)">A</div><small>Team A</small></div>';
+      if(canJoinB)h+='<div class="pk'+(myTeam===1?' sel':'')+'" onclick="joinTeam(1)"><div style="width:40px;height:56px;border:2px solid var(--ac);border-radius:8px;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--ac)">B</div><small>Team B</small></div>';
+      h+='</div></div>';
+    }
+
+    // Group seats by team: Team A = seats 0 & 2, Team B = seats 1 & 3.
+    const mySide=tm(me>=0?me:0);
+    h+='<div class="board">';
+    [0,1].forEach(team=>{
+      h+='<div class="bteam'+(team===mySide?' me':'')+'">';
+      h+='<div class="bth"><span><b>Team '+(team?'B':'A')+'</b><br><small>Seats '+(team?2:1)+' & '+(team?4:3)+'</small></span></div>';
+      [team,team+2].forEach(i=>{
+        const s=seats[i]||null;
+        const mine=s&&(typeof s.name==='string'&&s.name===uname);
+        const avImg=s?'<span class="pic" style="width:24px;height:24px;display:inline-block">'+avSvg(s.av||0)+'</span>':'';
+        // Any empty seat is switchable until the host starts the game
+        const sitDisabled=s&&!mine;
+        h+='<div class="seatrow"><span>Seat '+(i+1)+'</span><span>'+(s?avImg+' '+s.name+(mine?' (you)':'')+(s.connected===false?' (away)':''):'<small>empty, bot plays</small>')+'</span><button class="sm" onclick="sit('+i+')" '+(sitDisabled?'disabled':'')+'>Sit</button></div>';
+      });
+      h+='</div>';
+    });
+    h+='</div>';
+    h+='<p class="note" style="margin-top:8px;margin-bottom:0">Seats 1 & 3 are partners · Seats 2 & 4 are partners</p>';
+    h+='</div>';
+    h+=isHost?'<button class="pri" style="margin-top:12px;width:100%" onclick="hostStart()">Start game</button>':
+      '<p class="note" style="margin-top:12px">Waiting for the host to start.</p>';
+    h+='<button class="sm" style="width:100%;margin-top:10px;background:transparent;color:var(--mut)" onclick="leaveTable()">Leave table</button>';
+    h+='<button class="chatfab" onclick="toggleChat()" aria-label="Chat">💬</button>';
+  }else{
+    // Not in a room yet — choose Create or Join
+    h+='<div class="lcard">';
+    const savedName=document.querySelector('#playerName')?.value||uname;
+    const nameOk=!!savedName.trim();
+    h+='<div class="form-group" style="margin-bottom:12px"><label style="display:block;text-align:left;margin-bottom:4px;font-size:14px">Your Name</label><input id="playerName" value="'+escH(savedName)+'" placeholder="Enter your name" maxlength="16" style="width:100%;text-align:center" oninput="nameGate()" aria-required="true"></div>';
+    if(lobbyMode==='join'){
+      const savedCode=document.querySelector('#code')?.value||'';
+      h+='<div style="display:flex;gap:6px;margin-bottom:8px">';
+      h+='<input id="code" value="'+escH(savedCode)+'" placeholder="Table code" maxlength="8" style="flex:1;text-align:center;text-transform:uppercase;letter-spacing:2px;font-weight:700" aria-label="Table code">';
+      h+='</div>';
+      h+='<button class="pri" id="joinBtn" style="width:100%;margin-bottom:8px" onclick="joinT()"'+(nameOk?'':' disabled')+'>Join table</button>';
+      h+='<button style="width:100%" onclick="setLobbyMode(null)">Back</button>';
+    }else{
+      h+='<button class="pri" id="createBtn" style="width:100%;margin-bottom:8px" onclick="createTable()"'+(nameOk?'':' disabled')+'>Create a table</button>';
+      h+='<button class="pri" id="joinModeBtn" style="width:100%;margin-bottom:8px" onclick="setLobbyMode(\'join\')"'+(nameOk?'':' disabled')+'>Join a table</button>';
+    }
+    h+='</div>';
+    h+='<div class="lcard" style="margin-top:8px">';
+    h+='<button class="gold" id="soloBtn" style="width:100%;margin-bottom:6px" onclick="startSolo()"'+(nameOk?'':' disabled')+'>Play solo vs bots</button>';
+    if(hasSave())h+='<button class="pri" style="width:100%;margin-bottom:6px" onclick="resumeSolo()">Resume solo game</button>';
+    h+='<button onclick="openSheet(true)">How to play</button>';
+    h+='</div>';
+    if(lmsg)h+='<p class="note">'+lmsg+'</p>';
+  }
+  h+='<p style="text-align:center;color:var(--mut);font-size:11px;margin-top:10px">build 2026-11-04 · duel bidding</p>';
+  $('lobby').innerHTML=h;
+}
+function legacyCopy(t){
+  try{
+    const ta=document.createElement('textarea');
+    ta.value=t;
+    ta.setAttribute('readonly','');
+    ta.style.position='fixed';
+    ta.style.top='0';ta.style.left='0';
+    ta.style.width='1px';ta.style.height='1px';
+    ta.style.opacity='0.01';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0,ta.value.length);
+    const ok=document.execCommand('copy');
+    document.body.removeChild(ta);
+    return !!ok;
+  }catch(e){return false}
+}
+function selectCode(){
+  try{
+    const el=document.getElementById('roomCode');
+    if(!el)return;
+    const r=document.createRange();r.selectNodeContents(el);
+    const s=window.getSelection();
+    s.removeAllRanges();s.addRange(r);
+  }catch(e){}
+}
+function copyCode(){
+  const done=ok=>{
+    lmsg=ok?('Code '+code+' copied!'):'Copy failed — long-press the code to copy';
+    render();
+    if(!ok)selectCode();
+    setTimeout(()=>{if(!solo&&lmsg&&lmsg.indexOf('copied')>=0){lmsg='';render()}},2000);
+  };
+  if(navigator.clipboard&&window.isSecureContext){
+    navigator.clipboard.writeText(code).then(()=>done(true)).catch(()=>done(legacyCopy(code)));
+  }else{
+    done(legacyCopy(code));
+  }
+}
+
+/* ===== rendering ===== */
+function cardH(c,x){
+  const s=SU[c.s],p=pt(c),f=c.r==='J',ix='<b>'+c.r+'</b><i>'+s+'</i>';
+  return '<div class="card '+(red(c)?'r ':'')+(x||'')+'"><div class="cn">'+ix+'</div><div class="pp'+(f?' md':'')+'">'+(f?'<b>J</b><i>'+s+'</i>':s)+'</div>'+(p?'<span class="pv">'+p+'</span>':'')+'<div class="cn bt">'+ix+'</div></div>';
+}
+function chg(d){hb=Math.min(28,Math.max(Math.max(16,G.bid+1),hb+d));render()}
+function fly(L,rel){
+  const f=$('fly');f.innerHTML='';
+  const T=[['50%','112%'],['104%','50%'],['50%','-6%'],['-4%','50%']][rel(L.w)];
+  const els=L.cards.map(x=>{const d=document.createElement('div');d.innerHTML=cardH(x.c,'s'+rel(x.p));const e=d.firstChild;f.appendChild(e);return e});
+  const b=document.createElement('div');b.className='bonus';b.textContent='+'+L.v;b.style.left=T[0];b.style.top=T[1];f.appendChild(b);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    els.forEach(e=>{e.style.left=T[0];e.style.top=T[1];e.style.opacity='0';e.style.transform='translate(-50%,-50%) scale(.45)'});
+    b.style.opacity='1';
+  }));
+  setTimeout(()=>{f.innerHTML=''},1000);
+}
+const SUN=['Spades','Hearts','Diamonds','Clubs'];
+/* six-pip components: pipEls draws the lights, pipsH adds change animation for a live team, miniH is a small static row */
+function pipEls(a,pv,ch){
+  return a.map((v,i)=>'<i class="pip'+(v>0?' r':v<0?' b':'')+(ch&&ch[i]?' chg':'')+'"'+(ch&&ch[i]?' style="--pf:'+(pv[i]>0?'var(--pred)':pv[i]<0?'var(--pblk)':'var(--poff)')+'"':'')+'></i>').join('');
+}
+function pipsH(t,cls){
+  const a=G.pips[t],pv=pipPrev&&pipPrev[t],ch=pv?a.map((v,i)=>v!==pv[i]):null,mv=ch&&ch.some(Boolean);
+  const done=mv&&(pipsFull(a,1)||pipsFull(a,-1));
+  const nr=a.filter(v=>v>0).length,nb=a.filter(v=>v<0).length;
+  return '<div class="pips '+(cls||'')+(mv&&G.phase==='over'?' dly':'')+(done?' done '+(pipsFull(a,1)?'r':'k'):'')+'" role="img" aria-label="'+nr+' red, '+nb+' black, '+(NP-nr-nb)+' off">'+pipEls(a,pv,ch)+'</div>';
+}
+const miniH=a=>'<div class="pips sm">'+pipEls(a)+'</div>';
+function boardH(g,t0){
+  const tn=t=>[t,t+2].map(i=>i===me?'You':g.names[i]).join(' + ');
+  return '<div class="board">'+[[t0,'Your team'],[1-t0,'Opponents']].map((x,i)=>'<div class="bteam'+(i?'':' me')+'"><div class="bth"><span><b>'+x[1]+'</b><br><small>'+tn(x[0])+'</small></span><span class="bsc">'+sg(pipScore(g.pips[x[0]]))+'</span></div>'+pipsH(x[0],'lg')+'</div>').join('')+'</div>';
+}
+function undoClick(){
+  clearTimeout(undoT);
+  if(!undoArm){undoArm=true;undoT=setTimeout(()=>{undoArm=false;if(G)render()},4000);return render()}
+  undoArm=false;act({t:'undo'});
+}
+function selTr(k){selT=k;render()}
+function confirmW(){selT=null;act({t:'trump',m:'7th',w:1})}
+function confirmT(){if(!selT)return;const k=selT;selT=null;act(k==='NT'?{t:'trump',m:'nt'}:k==='S7'?{t:'trump',m:'7th'}:{t:'trump',c:k})}
+function closeOver(){dismissId=G.id;render()}
+function closeDev(){devSeen=G.id+'-'+G.dev.n;render()}
+function devAct(d){devSeen=G.id+'-'+G.dev.n;act({t:'rdbl',d});if(!solo&&!isHost)render()}
+function closeWarn(){warnSeen=G.id;render()}
+function closeSh(){shSeen=G.id;render()}
+/* pop-ups: trump picker for the bidder, win/loss result at the end of a deal */
+function modalH(g,V,myTr){
+  ml=false;
+  if(g.phase==='sh'&&g.turn===me&&me>=0)return '<div class="mp"><h2>Declare Single Hand?</h2><p>Play alone and win all 8 tricks. Your partner sits out. If you win every trick your team scores <b>+3</b> game points, and if you lose any trick it scores <b>−3</b>. Trump stays as set.</p><button class="gold" style="width:100%;margin-top:10px" onclick="act({t:\'sh\',d:1})">Declare Single Hand</button><button style="width:100%;margin-top:8px" onclick="act({t:\'sh\',d:0})">Pass</button></div>';
+  if(g.sh>=0&&g.shev&&g.phase==='play'&&g.n===0&&g.sh!==me&&shSeen!==g.id)return '<div class="mp"><h2>'+g.names[g.sh]+' plays Single Hand!</h2><p>'+(me>=0&&(g.sh+2)%4===me?'Your partner plays alone, so you sit out this deal.':(tm(g.sh)===tm(V)?'':'Stop them: take any trick and their team loses 3 game points. ')+g.names[(g.sh+2)%4]+' sits out.')+' They must win all 8 tricks.</p><button class="pri" style="width:100%;margin-top:10px" onclick="closeSh()">OK</button></div>';
+  if(g.dev&&(g.phase==='rdbl'||g.phase==='trump')&&g.dev.p!==me&&devSeen!==g.id+'-'+g.dev.n){
+    const dv=g.dev,ask=g.phase==='rdbl'&&g.bidder===me&&dv.x===2;
+    return '<div class="mp"><h2>'+g.names[dv.p]+(dv.x===2?' doubled!':' redoubled!')+'</h2><div class="big">×'+dv.x+'</div><p>'+(dv.x===2?'The opponents doubled the stakes.':'The bidder redoubled the stakes.')+' Each game point now counts '+dv.x+' times, so the bidding team’s pips move '+dv.x+' steps on this deal.</p>'+(ask?'<p class="note">Redouble to ×4, or keep ×2?</p><button class="gold" style="width:100%;margin-top:10px" onclick="devAct(1)">Redouble ×4</button><button style="width:100%;margin-top:8px" onclick="devAct(0)">Keep ×2</button>':'<button class="pri" style="width:100%;margin-top:10px" onclick="closeDev()">OK</button>')+'</div>';
+  }
+  if(g.phase==='no7'&&g.bidder===me){
+    const cs=g.hands[me].map(c=>cardH(c)).join('');
+    return '<div class="mp"><h2>No point cards</h2><p>None of your other 7 cards is a point card (J, 9, A or 10). Your 7th card, shown at the end, sets trump.</p><div style="--cw:36px;display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin:12px 0">'+cs+(g.tcard?'<span style="width:100%;font-size:11px;color:var(--mut)">7th card (trump)</span>'+cardH(g.tcard,'win2'):'')+'</div><p class="note">Cancel this deal and redeal, or continue anyway? If you continue, everyone is told.</p><button class="pri" style="width:100%;margin-top:12px" onclick="act({t:\'no7\',c:1})">Cancel this deal</button><button style="width:100%;margin-top:8px" onclick="act({t:\'no7\',c:0})">Continue anyway</button></div>';
+  }
+  if(g.warn>=0&&warnSeen!==g.id&&g.phase!=='over')return '<div class="mp"><h2>No power cards</h2><p><b>'+(g.warn===me?'You have':g.names[g.warn]+' has')+'</b> no point card (J, 9, A or 10) among the other 7 cards of the 7th-card trump, but '+(g.warn===me?'chose':'wants')+' to continue.</p><button class="pri" style="width:100%;margin-top:10px" onclick="closeWarn()">OK</button></div>';
+  if(myTr){
+    const sc=g.hands[me].find(c=>cid(c)===selT),ok=!!selT,w7=selT==='S7'&&g.hands[me].every(c=>pt(c)===0);
+    const cs=g.hands[me].map(c=>'<div class="pk'+(selT===cid(c)?' sel':'')+'" onclick="selTr(\''+cid(c)+'\')">'+cardH(c)+SUN[c.s]+'</div>').join('');
+    return '<div class="mp"><h2>Choose trump</h2><p class="note">Pick a card to set the trump suit. The card stays in your hand and you can play it normally. Or choose an option below.</p><div class="pick">'+cs+'</div><div class="opt'+(selT==='NT'?' sel':'')+'" onclick="selTr(\'NT\')"><b>Joker: no trump</b><small>No suit is trump this deal.</small></div><div class="opt'+(selT==='S7'?' sel':'')+'" onclick="selTr(\'S7\')"><b>7th card</b><small>Your 7th card sets trump. You will see it, but you cannot play it until someone asks for trump or it is the last trick.</small></div>'+(w7?'<div class="opt sel" style="cursor:default"><b>No point cards in your hand</b><small>None of your cards is a J, 9, A or 10. Cancel this deal and redeal, or continue with the 7th card as trump. If you continue, everyone is told.</small></div><button class="pri" style="width:100%;margin-top:12px" onclick="act({t:\'no7\',c:1})">Cancel this deal</button><button style="width:100%;margin-top:8px" onclick="confirmW()">Continue anyway</button>':'')+'<button class="pri" style="width:100%;margin-top:12px"'+(ok?'':' disabled')+(w7?' hidden':'')+' onclick="confirmT()">'+(selT==='NT'?'Play with no trump':selT==='S7'?'Use my 7th card as trump':sc?'Set '+SU[sc.s]+' as trump':'Select an option')+'</button></div>';
+  }
+  if(g.phase==='over'&&dismissId!==g.id){
+    ml=true;
+    const r=g.hist[g.hist.length-1],w=mw(),t0=tm(V),won=(r.ok?r.bt:1-r.bt)===t0,fin=w>=0,good=fin?w===t0:won;
+    const d=pipScore((r.after||g.pips)[t0])-pipScore((r.before||g.pips)[t0]),nm=t=>t===t0?'Your team':'The opponents';
+    return '<div class="mp '+(good?'win':'lose')+'"><h2>'+(fin?(w===t0?'You won the match!':'You lost the match'):(won?'Your team won the deal':'Your team lost the deal'))+'</h2>'+
+      '<div class="big">'+sg(d)+'</div><p class="note">'+(r.bt===t0?'game point'+(Math.abs(d)===1?'':'s')+(r.sh?' (single hand)':r.k>1?' (stakes ×'+r.k+')':''):'the defending team’s pips do not change')+'</p>'+
+      '<p>'+(r.sh?(r.bt===t0?'Your team':'The opponents')+' played Single Hand and won '+r.got+' of 8 tricks. ':(r.bt===t0?'Your team':'The opponents')+' bid '+r.bid+' and took '+r.got+' points. ')+(g.nt?'No trump this deal.':'Trump was '+SU[g.trump]+'.')+'</p>'+
+      boardH(g,t0)+(fin?'<p><b>'+(pipsFull(g.pips[1-w],-1)?nm(1-w)+' reached −6, so '+nm(w).toLowerCase()+' wins the match.':nm(w)+' reached +6 and wins the match.')+'</b></p>':'')+
+      (me>=0?'<button class="pri" style="width:100%" onclick="act({t:\'next\'})">'+(fin?'New match':'Next deal')+'</button>':'')+
+      '<button style="width:100%;margin-top:8px" onclick="closeOver()">View table</button></div>';
+  }
+  return '';
+}
+/* ===== avatars: people drawn as small SVG portraits (hs = hair style) ===== */
+const AVS=[
+ {bg:'#ffd9a8',sk:'#c68642',hr:'#1b1b1b',hs:0,sh:'#2f6fba'},
+ {bg:'#c9e4f5',sk:'#f1c27d',hr:'#4a2c17',hs:1,sh:'#c0392b'},
+ {bg:'#e3d7f5',sk:'#8d5524',hr:'#111',hs:2,sh:'#2e8b57',gl:1},
+ {bg:'#ffe0e0',sk:'#e0ac69',hr:'#2b1a10',hs:3,sh:'#6b4fbb'},
+ {bg:'#d6f0d9',sk:'#ffdbac',hr:'#b5651d',hs:4,sh:'#e08a1e'},
+ {bg:'#f5e6c8',sk:'#a9683c',hr:'#9b3d6e',hs:5,sh:'#d94f70'},
+ {bg:'#d9e7ff',sk:'#c68642',hr:'#222',hs:0,sh:'#14231f',gl:1,bd:1},
+ {bg:'#fde2f0',sk:'#f1c27d',hr:'#8a3b12',hs:1,sh:'#2a9d8f'},
+ {bg:'#e0f0f5',sk:'#8d5524',hr:'#1a1a1a',hs:2,sh:'#f4a261'},
+ {bg:'#fff0c9',sk:'#e0ac69',hr:'#555',hs:3,sh:'#457b9d',gl:1},
+ {bg:'#e6f5e0',sk:'#ffdbac',hr:'#2b1a10',hs:4,sh:'#9b2226',bd:1},
+ {bg:'#f0e0ff',sk:'#c68642',hr:'#2b6e8f',hs:5,sh:'#3a86ff'}
+];
+const BN=['Murilal','Kelepocha','Jon','Batul','Keltuda','Hulo','Rench'];
+const pickBots=n=>{const p=BN.slice();for(let i=p.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[p[i],p[j]]=[p[j],p[i]]}return p.slice(0,n)};
+function nextAv(u){for(let k=0;k<12;k++){const j=(k*5+3)%12;if(!u.has(j)){u.add(j);return j}}return 0}
+function loadAv(){try{const v=+localStorage.getItem('av29');return v>=0&&v<12?v:0}catch(e){return 0}}
+function avSvg(k){
+  const a=AVS[k%12],h=a.hr,s=a.sk;
+  const back=a.hs===1?`<path d="M12 22c0-12 6-16 12-16s12 4 12 16v14c-3 2-6 2-8 0H20c-2 2-5 2-8 0z" fill="${h}"/>`:a.hs===5?`<path d="M10 24c0-13 6-18 14-18s14 5 14 18c0 8-4 14-6 18H16c-2-4-6-10-6-18z" fill="${h}"/>`:'';
+  const fr=[
+   `<path d="M14.5 21c0-8 4-11 9.5-11s9.5 3 9.5 11c-2-4-5-6-9.5-6s-7.5 2-9.5 6z" fill="${h}"/>`,
+   `<path d="M14.5 21c0-9 4-12 9.5-12s9.5 3 9.5 12c-3-2-5-6-9.5-8-3 4-6 7-9.5 8z" fill="${h}"/>`,
+   `<g fill="${h}"><circle cx="16" cy="14" r="5"/><circle cx="24" cy="11" r="5.5"/><circle cx="32" cy="14" r="5"/><circle cx="14" cy="20" r="3.5"/><circle cx="34" cy="20" r="3.5"/></g>`,
+   `<circle cx="24" cy="7" r="4.5" fill="${h}"/><path d="M14.5 21c0-8 4-11 9.5-11s9.5 3 9.5 11c-2-4-5-6-9.5-6s-7.5 2-9.5 6z" fill="${h}"/>`,
+   `<path d="M14.5 21c0-8 5-11 10-11 6 0 9 4 9 11-1-3-3-5-6-6-4 1-9 2-13 6z" fill="${h}"/>`,
+   `<path d="M14 22c0-9 4-13 10-13s10 4 10 13c-2-4-5-7-10-7s-8 3-10 7z" fill="${h}"/>`][a.hs];
+  const beard=a.bd?`<path d="M15.5 26c0 7 3.5 10 8.5 10s8.5-3 8.5-10c-2 4-5 5-8.5 5s-6.5-1-8.5-5z" fill="${h}" opacity=".85"/>`:'';
+  const gl=a.gl?'<g fill="none" stroke="#222" stroke-width="1.2"><circle cx="20" cy="23" r="3.4"/><circle cx="28" cy="23" r="3.4"/><path d="M23.4 23h1.2"/></g>':'';
+  return `<svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" fill="${a.bg}"/>${back}<path d="M6 48c0-10 8-14 18-14s18 4 18 14z" fill="${a.sh}"/><rect x="20" y="29" width="8" height="8" fill="${s}"/><ellipse cx="24" cy="23" rx="9.5" ry="11" fill="${s}"/>${beard}${fr}<circle cx="20" cy="23" r="1.3" fill="#222"/><circle cx="28" cy="23" r="1.3" fill="#222"/>${gl}<path d="M20.5 28.5q3.5 3 7 0" stroke="#7a2e2e" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>`;
+}
+function avPicker(){
+  return '<div class="lcard"><div class="note" style="margin-bottom:8px">Choose your avatar</div><div class="avg">'+AVS.map((a,i)=>'<button class="avb'+(i===myAv?' sel':'')+'" onclick="setAv('+i+')" aria-label="Avatar '+(i+1)+'"><span class="pic">'+avSvg(i)+'</span></button>').join('')+'</div></div>';
+}
+async function setAv(i){
+  myAv=i;try{localStorage.setItem('av29',i)}catch(e){}
+  if(tdoc){const j=seats.findIndex(s=>s&&s.id===uid);if(j>=0)try{await db.doc('tables/'+code+'/seats/'+j).set({id:uid,name:uname,av:myAv,t:Date.now()})}catch(e){}}
+  if(ws&&ws.readyState===WebSocket.OPEN)wSend({type:'set-avatar',avatar:myAv});
+  const v=$('code')&&$('code').value;renderLobby();if(v&&$('code'))$('code').value=v;
+}
+/* ===== sound effects (synthesised in the browser, no audio files) ===== */
+function loadSn(){try{return localStorage.getItem('snd29')!=='0'}catch(e){return true}}
+let AC=null;
+function actx(){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC}catch(e){return null}}
+function tone(f,d,ty,v,at){const c=actx();if(!c)return;const n=c.currentTime+(at||0),o=c.createOscillator(),g=c.createGain();o.type=ty||'sine';o.frequency.value=f;g.gain.setValueAtTime(v||.1,n);g.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(g);g.connect(c.destination);o.start(n);o.stop(n+d)}
+function noise(d,v,at){const c=actx();if(!c)return;const n=c.currentTime+(at||0),b=c.createBuffer(1,Math.ceil(c.sampleRate*d),c.sampleRate),x=b.getChannelData(0);for(let i=0;i<x.length;i++)x[i]=(Math.random()*2-1)*(1-i/x.length);const s=c.createBufferSource(),g=c.createGain(),f=c.createBiquadFilter();f.type='highpass';f.frequency.value=1500;s.buffer=b;g.gain.value=v||.1;s.connect(f);f.connect(g);g.connect(c.destination);s.start(n)}
+const SND={play:()=>noise(.09,.2),deal:()=>[0,.07,.14,.21].forEach(t=>noise(.06,.14,t)),turn:()=>{tone(660,.12,'sine',.08);tone(880,.16,'sine',.08,.09)},win:()=>[523,659,784].forEach((f,i)=>tone(f,.25,'triangle',.1,i*.09)),lose:()=>tone(220,.28,'sawtooth',.05),bid:()=>tone(520,.07,'square',.035),dbl:()=>{tone(300,.2,'sawtooth',.06);tone(450,.25,'sawtooth',.06,.12)},rev:()=>{tone(400,.1,'triangle',.1);tone(600,.2,'triangle',.1,.1)},fan:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.3,'triangle',.1,i*.12)),sad:()=>[392,330,262].forEach((f,i)=>tone(f,.35,'triangle',.09,i*.18)),chat:()=>tone(900,.09,'sine',.06),flip:()=>{noise(.12,.15);[784,988,1175,1568].forEach((f,i)=>tone(f,.35,'triangle',.07,i*.07))}};
+function snd(k){if(snOn&&SND[k])try{SND[k]()}catch(e){}}
+function toggleSnd(){snOn=!snOn;try{localStorage.setItem('snd29',snOn?'1':'0')}catch(e){}$('snb').textContent=snOn?'🔊':'🔇';snd('turn')}
+/* ===== quick reactions, last trick, quick bids ===== */
+function botReact(w,v){
+  if(v<3||Math.random()>.45)return;
+  const bs=[0,1,2,3].filter(i=>G.bots[i]);if(!bs.length)return;
+  const b=bs[Math.random()*bs.length|0],E=tm(b)===tm(w)?['😎','🔥','👏']:['😢','😮','😅'];
+  G.react={q:++G.rq,p:b,e:E[Math.random()*3|0]};
+}
+function toggleRx(){const r=$('rx');r.hidden=!r.hidden;if(!r.hidden&&$('chatpop'))$('chatpop').hidden=true}
+function seatRel(i){return ((i-(me>=0?me:0))+4)%4}
+function sendReact(e){
+  $('rx').hidden=true;const t=Date.now();
+  if(t-lastRx<1500||me<0)return;
+  lastRx=t;
+  if(solo){apply(me,{t:'react',e});return;}
+  if(wsOnline)wSend({type:'react',e});
+}
+function bubble(r,e,isChat){
+  const d=document.createElement('div');
+  const g=$('game'),lobby=!g||g.hidden;
+  d.className='bub'+(isChat?' chat':'')+(lobby?' lb':' b'+r);
+  d.textContent=e;
+  const host=lobby?$('app'):$('table');if(!host)return;
+  host.appendChild(d);snd('chat');setTimeout(()=>d.remove(),isChat?4000:2400);
+}
+function toggleChat(){
+  const c=$('chatpop');if(!c)return;
+  c.hidden=!c.hidden;
+  if(!c.hidden){$('rx').hidden=true;setTimeout(()=>{const i=$('chatInput');if(i)i.focus()},50)}
+}
+function clearQuickSel(){document.querySelectorAll('#qchat button.sel').forEach(b=>b.classList.remove('sel'))}
+function pickQuick(btn,msg){
+  const inp=$('chatInput');if(!inp)return;
+  inp.value=msg;clearQuickSel();
+  if(btn)btn.classList.add('sel');
+  inp.focus();
+}
+function sendChat(){
+  const inp=$('chatInput');if(!inp)return;
+  const msg=inp.value.trim().slice(0,200);
+  const c=$('chatpop');if(c)c.hidden=true;
+  clearQuickSel();inp.value='';
+  if(!msg)return;
+  if(solo){bubble(seatRel(me<0?0:me),msg,true);return;}
+  if(wsOnline)wSend({type:'chat',message:msg});
+}
+function openLast(){
+  const g=G;if(!g)return;
+  const V=me>=0?me:0,rel=i=>(i-V+4)%4,N=i=>i===me?'You':g.names[i],L=g.last;
+  $('lt').innerHTML='<div class="mp"><h2>Last trick</h2>'+(L?'<div class="ltbox">'+L.cards.map(x=>cardH(x.c,'s'+rel(x.p)+(x.p===L.w?' win2':''))).join('')+'</div><p><b>'+N(L.w)+'</b> took it: +'+L.v+' point'+(L.v===1?'':'s')+'</p><p class="note">Played by '+L.cards.map(x=>N(x.p)).join(', ')+'</p>':'<p>No trick has been played yet.</p>')+'<p class="note">Tap anywhere to close.</p></div>';
+  $('lt').hidden=false;
+}
+function setHb(v){hb=v;render()}
+function hintFor(){
+  const g=G;if(me<0)return'You are watching this table.';
+  if(g.phase==='bid'&&g.turn===me)return'Raise the bid or pass. The lowest bid is 16.';
+  if(g.phase==='dbl'&&g.turn===me)return'Double the stakes to ×2? The bidder may then redouble to ×4.';
+  if(g.phase==='rdbl'&&g.turn===me)return'Your opponents doubled. Redouble to ×4, or keep ×2.';
+  if(g.phase==='trump'&&g.bidder===me)return'Choose your trump card in the pop-up.';
+  if(g.phase==='no7'&&g.bidder===me)return'Cancel the deal or continue in the pop-up.';
+  if(g.phase==='sh'&&g.turn===me)return'Declare Single Hand or pass in the pop-up.';
+  if(g.sh>=0&&g.phase==='play'&&(g.sh+2)%4===me)return'Your partner plays Single Hand. You sit out this deal.';
+  if(g.phase==='play'&&g.turn===me&&g.trick.length<tl()){
+    if(!g.trick.length)return'You lead. Play any card.';
+    const ls=g.trick[0].c.s,m=moves(me);
+    if(g.hands[me].some(c=>c.s===ls))return'Follow suit: play a '+SU[ls]+' card.';
+    if(m.reveal)return'No '+SU[ls]+'. Ask for trump now, or discard any card. You cannot ask after you play.';
+    if(g.forced===me&&m.cards.every(c=>c.s===g.trump))return'Trump was asked: you must play a trump card.';
+    return'No '+SU[ls]+'. Play any card.';
+  }
+  return'';
+}
+/* ===== trump reveal animation ===== */
+let rvBusy=false,rvPrev=false,rvId=-1,royPrev=false;
+function trumpReveal(g,N){
+  rvBusy=true;
+  const red=g.trump===1||g.trump===2,w=g.forced;
+  const who=w>=0?(w===g.bidder?'Revealed by ':'Asked by ')+N(w):'Revealed for the last trick';
+  const d=document.createElement('div');d.id='rv';
+  d.innerHTML='<div class="rvb"><div class="rvk"><div class="rvf rvbk"></div><div class="rvf rvfr">'+(g.tcs?cardH(g.tcs,''):'<div class="tface'+(red?' r':'')+'"><b>'+SU[g.trump]+'</b><small>'+SUN[g.trump]+'</small></div>')+'</div></div><div class="rvt">Trump is '+SUN[g.trump]+'<small>'+who+'</small></div></div>';
+  const end=()=>{d.remove();rvBusy=false;document.querySelectorAll('#tc .ts.hid').forEach(e=>{e.classList.remove('hid');e.classList.add('pop')})};
+  setTimeout(()=>{
+    $('table').appendChild(d);
+    if(matchMedia('(prefers-reduced-motion:reduce)').matches){setTimeout(end,1500);return}
+    setTimeout(()=>snd('flip'),1250);
+    setTimeout(end,2500);
+  },w>=0?0:800);
+}
+function setModal(mh,ml){
+  const el=$('modal');
+  if(mh===lastModalHTML){
+    if(!mh&&!el.hidden)el.hidden=true;
+    return;
+  }
+  const wasOpen=!el.hidden&&lastModalHTML!=='';
+  lastModalHTML=mh;
+  if(!mh){el.hidden=true;el.innerHTML='';el.className='mb';return;}
+  el.className='mb'+(ml?' late':'');
+  el.innerHTML=mh;
+  el.hidden=false;
+  if(!wasOpen){
+    el.classList.add('pop');
+    clearTimeout(modalPopTimer);
+    modalPopTimer=setTimeout(()=>el.classList.remove('pop'),320);
+  }
+}
+function render(){
+  if(!G){$('lobby').hidden=false;$('game').hidden=true;return renderLobby()}
+  $('lobby').hidden=true;$('game').hidden=false;
+  if($('cancelBtn'))$('cancelBtn').hidden=!isHost||solo;
+  if(!G.pips)G.pips=freshPips();
+  const g=G,V=me>=0?me:0,rel=i=>(i-V+4)%4,N=i=>i===me?'You':g.names[i],fm=s=>s.replace(/@(\d)/g,(m,i)=>N(+i));
+  if(g.id!==rvId){rvId=g.id;rvPrev=g.rev;royPrev=g.roy}else if(g.rev&&!rvPrev){rvPrev=true;if(g.trump>=0&&!g.nt)trumpReveal(g,N)}
+  if(g.roy&&!royPrev){royPrev=true;showDialog('Royals Declared!',(g.royBy>=0?N(g.royBy):'A player')+' declared Royals! The bid is now '+g.bid+'.',[{l:'OK',cls:'pri',fn:hideDialog}],true)}
+  const turnNow=g.phase!=='over'&&!(g.phase==='play'&&g.trick.length===tl());
+  const sitOut=me>=0&&g.sh>=0&&(g.sh+2)%4===me;
+  const mine=me>=0&&g.phase==='play'&&g.turn===me&&g.trick.length<tl(),m=mine?moves(me):null;
+  const myBid=me>=0&&g.phase==='bid'&&g.turn===me,myTr=me>=0&&g.phase==='trump'&&g.bidder===me;
+  const myD=me>=0&&g.phase==='dbl'&&g.turn===me,myR=me>=0&&g.phase==='rdbl'&&g.turn===me;
+  const tr=g.nt?'No trump':g.trump<0?'—':g.rev?SU[g.trump]:(g.bidder===me?SU[g.trump]+' hidden':'hidden');
+  $('chips').innerHTML='<span class="chip">Bid <b>'+(g.bid||'—')+'</b>'+(g.bidder>=0?' '+N(g.bidder):'')+'</span><span class="chip">Trump <b>'+tr+'</b></span>'+(g.sh>=0?'<span class="chip x"><b>Single hand</b></span>':(g.stake>1?'<span class="chip x"><b>×'+g.stake+'</b></span>':''))+(syncErr?'<span class="chip x"><b>Sync problem, retrying</b></span>':'');
+  $('msg').textContent=fm(g.msg);
+  $('hint').textContent=(hintFor()||(turnNow&&g.turn!==me?'Waiting for '+N(g.turn)+'…':''))+(mine?' Tap a card to play it.':'')+(me>=0&&me===g.bidder&&g.tcard&&g.phase==='play'?' Your trump card is shown but locked until trump is asked or the last trick.':'');
+  const t0=tm(V);
+  $('strip').innerHTML=[t0,1-t0].map((t,i)=>'<div class="tm'+(i?'':' me')+'"><small>'+(i?'Opponents':'Your team')+'</small><b>'+g.pts[t]+(g.bidder>=0&&tm(g.bidder)===t?' <i>/ '+g.bid+'</i>':'')+'</b><span>Match '+sg(pipScore(g.pips[t]))+'</span>'+pipsH(t)+'</div>').join('');
+  [0,1,2,3].forEach(r=>{const i=(V+r)%4;
+    $('s'+r).innerHTML='<div class="'+(g.turn===i&&turnNow?'on':'')+'"><div class="av"><span class="pic">'+avSvg((g.av&&g.av[i])|0)+'</span>'+(g.turn===i&&turnNow&&i!==me?'<span class="dots"><i></i><i></i><i></i></span>':'')+'<span class="cnt">'+g.hands[i].length+'</span></div><div class="sn">'+N(i)+(g.bidder===i?' ★':'')+(g.phase==='bid'&&g.passed[i]?' · pass':'')+(r===2||g.bots[i]||(g.sh>=0&&(g.sh===i||(g.sh+2)%4===i))?'<small>'+[r===2?'partner':'',g.bots[i]?'bot':'',g.sh===i?'single hand':'',g.sh>=0&&(g.sh+2)%4===i?'out':''].filter(Boolean).join(' · ')+'</small>':'')+'</div></div>'});
+  let c=g.trick.map(x=>{const r=rel(x.p);return cardH(x.c,'s'+r+(seenT.has(cid(x.c))?'':' in'+r))}).join('');
+  if(g.trick.some(x=>!seenT.has(cid(x.c))))snd('play');
+  seenT=new Set(g.trick.map(x=>cid(x.c)));
+  if(g.trump>=0&&g.phase!=='over')c+='<div id="tc">Trump'+(g.rev?'<div class="ts'+(g.trump===1||g.trump===2?' r':'')+(rvBusy?' hid':'')+'">'+SU[g.trump]+'</div>':(g.bidder===me?'<div class="ts'+(g.trump===1||g.trump===2?' r':'')+'" style="opacity:.75;outline:2px dashed #fff8">'+SU[g.trump]+'</div>':'<div class="card back" style="margin:2px auto"></div>'))+'</div>';
+  if(g.nt&&g.phase!=='over')c+='<div id="tc"><b style="font-size:13px">No trump</b></div>';
+  $('cc').innerHTML=c;
+  $('hand').innerHTML=me<0?'':g.hands[me].map((c,k)=>{
+    const ok=mine&&m.cards.includes(c);
+    return cardH(c,ok?'ok'+(selP===cid(c)?' sel2':''):(mine||sitOut?'dim':'')).replace('<div class="card','<div data-k="'+k+'" role="button" tabindex="'+(ok?0:-1)+'" aria-label="'+c.r+' of '+SUN[c.s]+(pt(c)?', '+pt(c)+' point'+(pt(c)>1?'s':''):'')+(ok?', playable':'')+'" class="card');
+  }).join('');
+  if(me>=0&&me===g.bidder&&g.tcard)$('hand').insertAdjacentHTML('beforeend',cardH(g.tcard,'lock'));
+  let a='';
+  if(myBid&&!g.passed[me]){
+    hb=Math.max(hb,Math.max(16,g.bid+1));
+    a='<button onclick="chg(-1)" aria-label="Lower bid">−</button><b>'+hb+'</b><button onclick="chg(1)" aria-label="Raise bid">+</button><button class="pri" onclick="act({t:\'bid\',b:hb})">Bid '+hb+'</button><button onclick="act({t:\'bid\',b:0})">Pass</button>';
+    if(canStay(me))a+='<button class="gold" onclick="act({t:\'stay\'})">Stay at '+g.bid+'</button>';
+    a+='<div class="qb">'+[16,18,20,22,24,28].filter(v=>v>=Math.max(16,g.bid+1)).map(v=>'<button class="sm'+(v===hb?' pri':'')+'" onclick="setHb('+v+')">'+v+'</button>').join('')+'</div>';
+  }
+  if(myD)a='<button class="gold" onclick="act({t:\'dbl\',d:1})">Double ×2</button><button onclick="act({t:\'dbl\',d:0})">Pass</button>';
+  if(myR)a='<button class="gold" onclick="act({t:\'rdbl\',d:1})">Redouble ×4</button><button onclick="act({t:\'rdbl\',d:0})">Keep ×2</button>';
+  if(mine){
+    if(m.reveal)a+='<button class="pri" onclick="act({t:\'reveal\'})">'+(g.bidder===me?'Reveal trump':'Ask for trump')+'</button>';
+    if(canRoy(me))a+='<button class="gold" onclick="act({t:\'roy\'})">Declare Royals</button>';
+  }
+  if(g.phase==='over'){
+    const r=g.hist[g.hist.length-1],w=mw();
+    a='<div class="res">'+(r.bt===tm(V)?'Your team':'The opponents')+(r.sh?' played Single Hand and won '+r.got+' of 8 tricks. ':' bid '+r.bid+' and took '+r.got+' points. ')+(r.ok?(r.sh?'Single Hand made':'Bid made'):(r.sh?'Single Hand failed':'Bid failed'))+(r.ok?': +':': −')+r.k+' game point'+(r.k>1?'s':'')+'.'+
+      (w>=0?'<br><b>'+(w===tm(V)?'Your team wins the match!':'The opponents win the match.')+'</b>':'')+'</div>'+
+      (me>=0?'<button class="pri" onclick="act({t:\'next\'})">'+(w>=0?'New match':'Next deal')+'</button>':'');
+  }
+  $('act').innerHTML=a;
+  const tn=t=>[t,t+2].map(N).join(' + ');
+  const row=(t,l)=>'<tr><td>'+l+'<br><small>'+tn(t)+'</small></td><td>'+g.pts[t]+(g.bidder>=0&&tm(g.bidder)===t?' / '+g.bid:'')+'</td><td>'+g.tricks[t]+'</td><td><b>'+sg(pipScore(g.pips[t]))+'</b></td></tr>';
+  $('sb').innerHTML=boardH(g,t0)+'<table><tr><th></th><th>Deal pts</th><th>Tricks</th><th>Match</th></tr>'+row(t0,'Your team')+row(1-t0,'Opponents')+'</table>';
+  $('hist').innerHTML=(g.hist.length?'<table class="ht"><tr><th>Hand</th><th>Bidder</th><th>Points</th><th>Pips</th></tr>'+g.hist.map(r=>'<tr><td>'+r.n+'</td><td>'+(r.bt===t0?'Your team':'Opponents')+'<br><small>'+(r.sh?'single hand':'bid '+r.bid+(r.k>1?', ×'+r.k:''))+'</small></td><td>'+r.got+(r.ok?' ✓':' ✗')+'<br><small>'+(r.sh?(r.ok?'8 of 8 tricks':'tricks won'):(r.ok?'made':'failed'))+'</small></td><td>'+(r.before?miniH(r.before[r.bt])+miniH(r.after[r.bt])+'<small>'+sg(pipScore(r.before[r.bt]))+' → '+sg(pipScore(r.after[r.bt]))+'</small>':'–')+'</td></tr>').join('')+'</table>':'No deals played yet this match.')+(me>=0&&g.hist.length?'<button style="width:100%;margin-top:10px" onclick="undoClick()">'+(undoArm?'Tap again to undo hand '+g.hist.length:'Undo last hand')+'</button>':'');
+  if(seenQ<0)seenQ=g.last?g.last.q:0;
+  else if(g.last&&g.last.q>seenQ){seenQ=g.last.q;fly(g.last,rel);snd(tm(g.last.w)===t0?'win':'lose')}
+  const yours=mine||myBid||myD||myR||myTr||(me>=0&&g.phase==='no7'&&g.bidder===me)||(me>=0&&g.phase==='sh'&&g.turn===me);
+  if(yours&&!wasMine){snd('turn');if(navigator.vibrate)try{navigator.vibrate(25)}catch(e){}}
+  wasMine=yours;
+  if(!myTr)selT=null;
+  const mh=modalH(g,V,myTr),dk=g.dev?g.id+'-'+g.dev.n:'';
+  if(mh&&g.sh>=0&&g.phase==='play'&&g.n===0&&g.sh!==me&&shSeen!==g.id&&shTm!==g.id){shTm=g.id;const sid=g.id;setTimeout(()=>{if(shSeen!==sid){shSeen=sid;if(G)render()}},3500)}
+  if(mh&&dk&&devSeen!==dk&&devTm!==dk&&g.dev.p!==me&&(g.phase==='trump'||(g.phase==='rdbl'&&!(g.bidder===me&&g.dev.x===2)))){devTm=dk;setTimeout(()=>{if(devSeen!==dk){devSeen=dk;if(G)render()}},3500)}
+  setModal(mh,ml);
+  if(!mine)selP=null;
+  $('snb').textContent=snOn?'🔊':'🔇';
+  if(g.id!==lastId){lastId=g.id;snd('deal')}
+  if(g.msg!==lastMsg){lastMsg=g.msg;if(/doubles|redoubles/.test(g.msg))snd('dbl');else if(/asked by|revealed by/.test(g.msg))snd('rev');else if(g.phase==='bid')snd('bid')}
+  if(g.phase==='over'&&overId!==g.id){overId=g.id;const r=g.hist[g.hist.length-1];snd((r.ok?r.bt:1-r.bt)===t0?'fan':'sad')}
+  pipPrev=clonePips(g.pips);
+  if(seenR<0)seenR=g.react?g.react.q:0;
+  else if(g.react&&g.react.q>seenR){seenR=g.react.q;bubble(rel(g.react.p),g.react.e)}
+}
+$('hand').onclick=e=>{
+  const el=e.target.closest('.card');if(!el||!G||me<0||el.dataset.k==null)return;
+  const c=G.hands[me][+el.dataset.k];if(!c)return;
+  if(G.phase==='play'&&G.turn===me&&G.trick.length<tl()&&moves(me).cards.includes(c)){
+    selP=null;act({t:'play',c:cid(c)})
+  }
+};
+$('hand').onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;const k=e.target.dataset&&e.target.dataset.k;if(k==null)return;e.preventDefault();$('hand').onclick({target:e.target});const n=$('hand').querySelector('[data-k="'+k+'"]');if(n)n.focus()};
+/* Rejoin the previous table after a page reload (same tab only). */
+(function boot(){
+  const s=loadSession();
+  if(s&&s.code&&s.token){
+    uname=s.name||uname;code=s.code;me=(s.seat==null?0:s.seat);roomToken=s.token;inRoom=true;
+    openWs();
+  }else{
+    renderLobby();
+  }
+})();
+startSyncLoop();
+</script></body></html>

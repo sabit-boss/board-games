@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a110f">
+<title>Card House — Multi-game playground</title>
+<style>
+:root{
+  --bg:#06090a;--card:#0d1311;--card2:#111916;--tx:#eef4f1;--mut:#8a9a94;--ln:#ffffff14;--ln2:#ffffff26;
+  --ac:#e9b44c;--act:#34d399;--act2:#10a37f;--r:22px;
+  --sf:#0d1311;--shadow:#00000040;--shadow2:#0009;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;color:var(--tx);background:var(--bg);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;min-height:100dvh;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:radial-gradient(700px 420px at 15% -5%,#10a37f2b,transparent 65%),radial-gradient(640px 420px at 92% 4%,#e9b44c22,transparent 65%)}
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5;
+  background-image:linear-gradient(var(--ln) 1px,transparent 1px),linear-gradient(90deg,var(--ln) 1px,transparent 1px);background-size:56px 56px;
+  -webkit-mask-image:radial-gradient(ellipse 70% 55% at 50% 0%,#000,transparent 75%);mask-image:radial-gradient(ellipse 70% 55% at 50% 0%,#000,transparent 75%)}
+.wrap{max-width:1160px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 56px}
+/* nav */
+.nav{position:sticky;top:0;z-index:20;margin:0 calc(-1*clamp(16px,4vw,32px));padding:12px clamp(16px,4vw,32px);
+  background:#06090acc;backdrop-filter:blur(14px) saturate(1.4);-webkit-backdrop-filter:blur(14px) saturate(1.4);border-bottom:1px solid var(--ln)}
+.topline{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1160px;margin:0 auto}
+.brand{display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:16px;letter-spacing:-.2px;color:var(--tx);text-decoration:none}
+.logo{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;font-size:17px;color:#1a1200;
+  background:linear-gradient(145deg,#ffe2a0,#e9b44c);box-shadow:0 4px 14px #e9b44c44,inset 0 1px 0 #fff8}
+.pill{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--mut);border:1px solid var(--ln);background:#ffffff08;padding:7px 12px;border-radius:999px}
+.pill i{width:7px;height:7px;border-radius:50%;background:var(--act);box-shadow:0 0 0 3px #34d39922,0 0 10px var(--act)}
+/* hero */
+.hero{padding:clamp(34px,7vw,76px) 0 6px;text-align:center}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 8px 6px 12px;border-radius:999px;border:1px solid var(--ln2);background:#ffffff0a;font-size:12.5px;font-weight:600;color:var(--tx);text-decoration:none;transition:.2s}
+.eyebrow:hover{border-color:var(--act);background:#34d39912}
+.eyebrow b{background:linear-gradient(180deg,#f3c562,#d6951a);color:#2a1c00;border-radius:999px;padding:3px 9px;font-size:11px;letter-spacing:.04em}
+h1{font-size:clamp(38px,7.4vw,76px);line-height:1;letter-spacing:-.045em;margin:22px auto 16px;max-width:880px;font-weight:800;
+  background:linear-gradient(180deg,#fff 30%,#9fb3ab);-webkit-background-clip:text;background-clip:text;color:transparent}
+h1 em{font-style:normal;background:linear-gradient(90deg,#ffe2a0,#e9b44c 60%,#f0c15d);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{margin:0 auto;color:var(--mut);font-size:clamp(15px,2vw,18px);line-height:1.6;max-width:600px}
+.stats{display:flex;justify-content:center;gap:clamp(18px,5vw,56px);margin-top:30px;flex-wrap:wrap}
+.stat b{display:block;font-size:26px;letter-spacing:-.03em}.stat span{font-size:12.5px;color:var(--mut)}
+/* spotlight surface (shared) */
+.featured,.gcard{position:relative;--mx:50%;--my:0%}
+.featured::before,.gcard::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;opacity:0;transition:opacity .25s;
+  background:radial-gradient(420px circle at var(--mx) var(--my),#ffffff14,transparent 45%)}
+.featured:hover::before,.gcard:hover::before{opacity:1}
+/* featured */
+.featured{display:grid;grid-template-columns:1.1fr 1fr;margin-top:clamp(30px,5vw,48px);border-radius:28px;overflow:hidden;
+  background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--ln2);box-shadow:0 30px 70px var(--shadow2),inset 0 1px 0 #ffffff12}
+.fart{position:relative;min-height:290px;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  background:radial-gradient(90% 90% at 30% 20%,#1fa883,#0b4a3a 55%,#062c22)}
+.fart::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,#ffffff06 0 2px,transparent 2px 14px)}
+.fart::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 120% at 50% 0%,#ffffff2e,transparent 60%)}
+.finfo{padding:clamp(24px,4vw,44px);display:flex;flex-direction:column;gap:12px;justify-content:center;align-items:flex-start}
+.finfo h2{margin:0;font-size:clamp(28px,4.4vw,42px);letter-spacing:-.04em;line-height:1.05}
+.finfo p{margin:0;color:var(--mut);font-size:15.5px;line-height:1.6;max-width:420px}
+.feats{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 6px}
+.feat{font-size:12px;font-weight:600;color:#cfe3da;border:1px solid var(--ln);background:#ffffff08;padding:6px 11px;border-radius:999px}
+.art29{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;z-index:1;animation:fl 6s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-8px)}}
+.art29 b{font-size:clamp(88px,14vw,130px);line-height:1;font-weight:900;letter-spacing:-.07em;color:#ffe2a0;text-shadow:0 10px 40px #0009,0 0 60px #e9b44c55}
+.art29 .s{position:absolute;font-size:30px;color:#ffffffdd;text-shadow:0 2px 10px #0006}
+.art29 .tl{top:24px;left:30px}.art29 .tr{top:24px;right:30px}.art29 .bl{bottom:24px;left:30px}.art29 .br{bottom:24px;right:30px}.art29 .r{color:#ffb4a8}
+.live{position:absolute;top:16px;left:16px;z-index:4;display:flex;align-items:center;gap:7px;background:#00000066;color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:6px 11px;border-radius:999px;backdrop-filter:blur(6px)}
+.live i{width:6px;height:6px;border-radius:50%;background:#7ef0a5;box-shadow:0 0 10px #7ef0a5}
+/* buttons */
+.cta{margin-top:10px;align-self:flex-start;display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px;border-radius:12px;font-weight:700;font-size:14px;text-decoration:none;color:#04150f;
+  background:linear-gradient(180deg,#5eead4,#34d399);box-shadow:0 8px 24px #34d39944,inset 0 1px 0 #fff7;transition:transform .15s,box-shadow .15s}
+.cta span{transition:transform .15s}.cta:hover{box-shadow:0 10px 30px #34d39966}.cta:hover span,a.gcard:hover .cta span{transform:translateX(3px)}
+/* controls */
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-top:clamp(34px,5vw,56px)}
+.search{position:relative;flex:1;min-width:240px;max-width:380px}
+.search .si{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;opacity:.5;pointer-events:none}
+.search kbd{position:absolute;right:12px;top:50%;transform:translateY(-50%);font:600 11px ui-monospace,monospace;color:var(--mut);border:1px solid var(--ln2);border-radius:6px;padding:2px 7px;pointer-events:none}
+.search input{width:100%;height:44px;padding:0 40px 0 42px;border-radius:12px;border:1px solid var(--ln2);background:#ffffff08;color:var(--tx);font-size:14.5px;outline:none;transition:.15s}
+.search input::placeholder{color:var(--mut)}.search input:focus{border-color:var(--act);box-shadow:0 0 0 4px #34d39920;background:#ffffff0c}
+.chips{display:flex;gap:4px;padding:4px;border-radius:14px;border:1px solid var(--ln);background:#ffffff07;overflow-x:auto;scrollbar-width:none;max-width:100%}
+.chips::-webkit-scrollbar{display:none}
+.chip{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:10px;border:0;background:transparent;color:var(--mut);font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:.15s}
+.chip:hover{color:var(--tx)}.chip.active{background:#ffffff14;color:var(--tx);box-shadow:inset 0 0 0 1px var(--ln2),0 2px 8px #0005}
+.chip small{font-size:11px;color:var(--mut);background:#ffffff0d;border-radius:999px;padding:1px 7px}.chip.active small{background:var(--act);color:#04150f}
+.chip:focus-visible,.search input:focus-visible,a:focus-visible{outline:2px solid var(--act);outline-offset:3px}
+/* grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(256px,1fr));gap:18px;margin-top:20px}
+.gcard{display:flex;flex-direction:column;border-radius:var(--r);overflow:hidden;background:linear-gradient(170deg,var(--card2),var(--card));border:1px solid var(--ln);
+  transition:transform .25s cubic-bezier(.2,.8,.2,1),border-color .2s,box-shadow .25s;animation:up .5s both;animation-delay:calc(var(--i,0)*45ms)}
+@keyframes up{from{opacity:0;transform:translateY(14px)}}
+a.gcard{text-decoration:none;color:inherit}
+a.gcard:hover{transform:translateY(-6px);border-color:#34d39966;box-shadow:0 24px 48px var(--shadow2),0 0 0 1px #34d39922}
+a.gcard:active{transform:translateY(-2px) scale(.99)}
+.gart{position:relative;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.gart::after{content:"";position:absolute;inset:0;z-index:2;background:linear-gradient(180deg,#ffffff1c,transparent 40%,#0000004d);pointer-events:none}
+.art{position:absolute;inset:0;z-index:1;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.art svg{width:100%;height:100%;display:block}a.gcard:hover .art{transform:scale(1.06)}
+.ginfo{padding:16px 18px 18px;display:flex;flex-direction:column;gap:6px;flex:1}
+.ginfo h2{margin:0;font-size:18px;letter-spacing:-.02em}
+.ginfo p{margin:0;color:var(--mut);font-size:13.5px;line-height:1.5}
+.ginfo .cta{height:36px;padding:0 14px;font-size:13px;border-radius:10px;margin-top:12px}
+.badge{margin-top:12px;align-self:flex-start;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);background:#ffffff08;border:1px solid var(--ln);padding:7px 11px;border-radius:10px}
+.soon{opacity:.72;filter:saturate(.55)}.soon .ginfo h2{color:#c4d0cb}
+.tag{position:absolute;top:12px;right:12px;z-index:2;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:#0007;color:#fff;padding:5px 10px;border-radius:999px;backdrop-filter:blur(6px);border:1px solid #ffffff1a}
+.gcard .live{top:12px;left:12px;padding:5px 10px}
+.empty{margin-top:26px;text-align:center;color:var(--mut);font-size:14.5px;background:#ffffff06;border:1px dashed var(--ln2);border-radius:18px;padding:30px}
+.empty a{color:var(--act);font-weight:700}
+footer{margin-top:64px;padding-top:26px;border-top:1px solid var(--ln);color:var(--mut);font-size:13px;text-align:center;line-height:1.7}
+footer b{color:var(--tx)}
+@media (max-width:760px){.featured{grid-template-columns:1fr}.fart{min-height:220px}.controls{flex-direction:column;align-items:stretch}.search{max-width:none}.search kbd{display:none}}
+@media (max-width:520px){.grid{gap:14px}.pill{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<filter id="sh" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#000" flood-opacity=".45"/></filter>
+<filter id="bl" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="16"/></filter>
+<linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#e4ddcc"/></linearGradient>
+<linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe9a8"/><stop offset=".5" stop-color="#e9b44c"/><stop offset="1" stop-color="#b9791a"/></linearGradient>
+<radialGradient id="gloss" cx=".3" cy=".25" r=".75"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+<linearGradient id="ivory" x1="0" x2="1"><stop offset="0" stop-color="#fffaf0"/><stop offset="1" stop-color="#cdb98f"/></linearGradient>
+<linearGradient id="ebony" x1="0" x2="1"><stop offset="0" stop-color="#55556a"/><stop offset="1" stop-color="#0c0c12"/></linearGradient>
+<linearGradient id="grn" x1="0" x2="1"><stop offset="0" stop-color="#b6f26e"/><stop offset="1" stop-color="#2f9e2f"/></linearGradient>
+<linearGradient id="red" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff6b5e"/><stop offset="1" stop-color="#b3201a"/></linearGradient>
+<linearGradient id="wood" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3d8a0"/><stop offset="1" stop-color="#d1a363"/></linearGradient>
+</defs></svg>
+<div class="wrap">
+  <header class="nav"><div class="topline">
+    <a class="brand" href="/"><span class="logo">♠</span> Card House</a>
+    <span class="pill"><i></i> <span id="liveN">1</span> games live</span>
+  </div></header>
+
+  <section class="hero">
+    <h1>Your table is <em>always open.</em></h1>
+    <p class="lead">Classic card and board games with friends online, or against smart bots. No sign-up, no downloads. Just pick a game and play.</p>
+    <div class="stats">
+      <div class="stat"><b id="statN">1</b><span>games live now</span></div>
+      <div class="stat"><b>2–4</b><span>players per room</span></div>
+      <div class="stat"><b>Bots</b><span>fill any empty seat</span></div>
+    </div>
+  </section>
+
+  <div class="controls">
+    <div class="search">
+      <svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="search" type="search" placeholder="Search games…" aria-label="Search games by name" autocomplete="off"><kbd>/</kbd>
+    </div>
+    <div class="chips" id="chips" role="group" aria-label="Game categories"></div>
+  </div>
+
+  <main class="grid" id="grid"></main>
+  <p class="empty" id="empty" hidden>No games match your search.</p>
+  <noscript><p class="empty">JavaScript is off — 29 Card Game is at <a href="/29">/29</a>.</p></noscript>
+
+  <footer>
+    <b>Card House</b> · Your multi-game playground<br>
+    29 Card Game is live — more games are on the way.
+  </footer>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ── Data: add a game or category here — the page renders itself ── */
+const CATEGORIES=[
+  {id:'all',label:'All Games'},
+  {id:'card',label:'Card Games'},
+  {id:'arcade',label:'Arcade'},
+  {id:'puzzle',label:'Puzzle & Brain'},
+  {id:'board',label:'Board Games'}
+];
+const GAMES=[
+  {id:'29',name:'29 Card Game',cat:'card',art:'g29',href:'/29',
+   desc:'Bid, set trump, and take tricks with a partner. Play online or against bots.'},
+  {id:'poker',name:'Poker',cat:'card',art:'poker',
+   desc:'Bluff, raise, and read the table in a friendly showdown.'},
+  {id:'rummy',name:'Rummy',cat:'card',art:'rummy',
+   desc:'Meld your hand and be first to go out. Classic draw-and-discard.'},
+  {id:'teenpatti',name:'Teen Patti',cat:'card',art:'teenpatti',
+   desc:'Three cards, fast rounds, and a whole lot of nerve.'},
+  {id:'blackjack',name:'Blackjack',cat:'card',art:'blackjack',
+   desc:'Beat the dealer to 21 without going over.'},
+  {id:'memory',name:'Memory Match',cat:'card',art:'memory',
+   desc:'Flip and find the pairs — a sharp memory wins.'},
+  {id:'flappy',name:'Flappy Bird',cat:'arcade',art:'flappy',
+   desc:'Tap to fly, dodge the pipes, chase your high score.'},
+  {id:'snake',name:'Snake',cat:'arcade',art:'snake',
+   desc:'Grow, steer, and never bite your own tail.'},
+  {id:'racing',name:'Car Racing',cat:'arcade',art:'racing',
+   desc:'Speed around the track and beat the clock.'},
+  {id:'sudoku',name:'Sudoku',cat:'puzzle',art:'sudoku',
+   desc:'Fill the grid, one number at a time. Pure logic.'},
+  {id:'chess',name:'Chess',cat:'puzzle',art:'chess',
+   desc:'Plan, trade, and checkmate — the classic duel.'},
+  {id:'ludo',name:'Ludo',cat:'board',art:'ludo',
+   desc:'Roll the dice and race your tokens home.'},
+  {id:'carrom',name:'Carrom',cat:'board',art:'carrom',
+   desc:'Flick the striker and sink your coins.'}
+];
+const IC={all:'<rect x="3" y="3" width="7" height="7" rx="1.500"/><rect x="14" y="3" width="7" height="7" rx="1.500"/><rect x="14" y="14" width="7" height="7" rx="1.500"/><rect x="3" y="14" width="7" height="7" rx="1.500"/>',card:'<rect x="5" y="3" width="11" height="16" rx="2"/><path d="M9 21h8a2 2 0 0 0 2-2V8"/>',arcade:'<path d="M6 11h4M8 9v4M15 12h.01M18 10h.01"/><path d="M17.3 5H6.7a4 4 0 0 0-4 3.600C2.600 9.400 2 14.500 2 16a3 3 0 0 0 3 3c1 0 1.500-.5 2-1l1.400-1.400a2 2 0 0 1 1.400-.6h4.400a2 2 0 0 1 1.400.6L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.500-.6-6.600-.7-7.300A4 4 0 0 0 17.300 5z"/>',puzzle:'<path d="M19.400 7.900c-.1.300.1.600.3.900l1.600 1.600a2.400 2.400 0 0 1 0 3.400l-1.600 1.600a1 1 0 0 1-.8.300c-.5-.1-.8-.5-1-.9a2.500 2.500 0 1 0-3.200 3.200c.4.200.9.500.9 1a1 1 0 0 1-.3.800l-1.600 1.600a2.400 2.400 0 0 1-3.400 0l-1.600-1.600a1 1 0 0 0-.9-.3c-.5.100-.8.500-1 1a2.500 2.500 0 1 1-3.200-3.200c.5-.2.900-.5 1-1a1 1 0 0 0-.3-.9L2.700 13.400a2.400 2.400 0 0 1 0-3.400l1.500-1.500c.2-.2.600-.4.900-.3.500.1.900.5 1.100 1a2.500 2.500 0 1 0 3.300-3.300c-.5-.2-.9-.6-1-1.100 0-.3.100-.7.300-.9l1.500-1.500a2.400 2.400 0 0 1 3.400 0l1.600 1.600c.2.200.6.300.9.300.5-.1.800-.5 1-1a2.500 2.500 0 1 1 3.200 3.200c-.5.200-.9.500-1 1z"/>',board:'<rect width="12" height="12" x="2" y="10" rx="2"/><path d="m17.900 14 3.500-3.500a2.200 2.200 0 0 0 0-3l-5-4.900a2.200 2.200 0 0 0-3 0L10 6M6 18h.01M10 14h.01M15 6h.01M18 9h.01"/>'};
+const ico=id=>'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(IC[id]||IC.all)+'</svg>';
+const CAT_LABEL={card:'Card',arcade:'Arcade',puzzle:'Puzzle',board:'Board'};
+const ART_BG={card:'#0d1311'};
+let _g=0;
+const S=(a,b,c,body)=>{const id='bg'+(_g++);return `<svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><radialGradient id="${id}" cx=".25" cy="0" r="1.25"><stop offset="0" stop-color="${a}"/><stop offset=".55" stop-color="${b}"/><stop offset="1" stop-color="${c}"/></radialGradient></defs><rect width="320" height="180" fill="url(#${id})"/>${body}</svg>`};
+const RED='#d63a3a',BLK='#161b22';
+const SU={s:'<path d="M12 2C12 2 3 9 3 14a4.500 4.500 0 0 0 8 2.800C10.600 19 9.600 20.600 8 22h8c-1.600-1.400-2.600-3-3-5.200A4.500 4.500 0 0 0 21 14C21 9 12 2 12 2z"/>',h:'<path d="M12 21C5 15 2 11 2 7.500A5 5 0 0 1 12 6a5 5 0 0 1 10 1.500C22 11 19 15 12 21z"/>',d:'<path d="M12 2l9 10-9 10L3 12z"/>',c:'<circle cx="12" cy="7" r="4.300"/><circle cx="7" cy="14" r="4.300"/><circle cx="17" cy="14" r="4.300"/><path d="M12 12l-3 10h6z"/>'};
+const suit=(s,x,y,z,f)=>`<g transform="translate(${x} ${y}) scale(${z/24})" fill="${f}">${SU[s]}</g>`;
+const glow=(x,y,r,c)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" opacity=".4" filter="url(#bl)"/>`;
+function card(x,y,r,rk,s){const c=(s==='h'||s==='d')?RED:BLK;return `<g transform="translate(${x} ${y}) rotate(${r})" filter="url(#sh)"><rect x="-30" y="-42" width="60" height="84" rx="7" fill="url(#paper)" stroke="#0002"/><text x="-24" y="-24" font-size="${rk==='10'?13:15}" font-weight="800" font-family="Georgia,serif" fill="${c}">${rk}</text>${suit(s,-25,-20,10,c)}${suit(s,-12,-3,24,c)}</g>`}
+const fan=(cx,cy,l,sp)=>l.map(([rk,s],i)=>`<g transform="translate(${cx} ${cy}) rotate(${(i-(l.length-1)/2)*sp})"><g transform="translate(0 -80)">${card(0,0,0,rk,s)}</g></g>`).join('');
+const chip=(x,y,c,r)=>`<g filter="url(#sh)"><circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/><circle cx="${x}" cy="${y}" r="${r*.82}" fill="none" stroke="#fff" stroke-width="${r*.26}" stroke-dasharray="${r*.5} ${r*.46}" opacity=".92"/><circle cx="${x}" cy="${y}" r="${r*.5}" fill="${c}" stroke="#fff9" stroke-width="1"/><circle cx="${x}" cy="${y}" r="${r}" fill="url(#gloss)"/></g>`;
+const tok=(x,y,c)=>`<g filter="url(#sh)"><path d="M${x-11} ${y+10}Q${x-8} ${y-2} ${x} ${y-2}Q${x+8} ${y-2} ${x+11} ${y+10}Z" fill="${c}"/><circle cx="${x}" cy="${y-9}" r="7.500" fill="${c}"/><circle cx="${x}" cy="${y-9}" r="7.500" fill="url(#gloss)"/></g>`;
+const goldPill=(x,y,w,t)=>`<g filter="url(#sh)"><rect x="${x}" y="${y}" width="${w}" height="34" rx="17" fill="url(#gold)"/><rect x="${x}" y="${y}" width="${w}" height="34" rx="17" fill="url(#gloss)"/><text x="${x+w/2}" y="${y+24}" text-anchor="middle" font-size="21" font-weight="900" fill="#3a2500" font-family="Georgia,serif">${t}</text></g>`;
+const KB='<ellipse cy="-3" rx="27" ry="7"/><path d="M-25 -6Q-23 -17 -14 -20H14Q23 -17 25 -6Z"/>';
+const KING=`<g>${KB}<path d="M-13 -20C-10 -40-9 -55-14 -66H14C9 -55 10 -40 13 -20Z"/><rect x="-18" y="-73" width="36" height="9" rx="4.500"/><path d="M-14 -73C-23 -87-12 -99 0 -99S23 -87 14 -73Z"/><rect x="-2.500" y="-117" width="5" height="19" rx="2"/><rect x="-8" y="-111" width="16" height="5" rx="2"/></g>`;
+const PAWN=`<g>${KB}<path d="M-12 -20C-10 -34-8 -42-10 -48H10C8 -42 10 -34 12 -20Z"/><rect x="-15" y="-55" width="30" height="8" rx="4"/><circle cy="-67" r="12"/></g>`;
+const piece=(p,x,y,s,g)=>`<g transform="translate(${x} ${y}) scale(${s})" fill="url(#${g})" filter="url(#sh)">${p}</g>`;
+const ART={
+g29:S('#14a37f','#0b5a45','#031a14',glow(160,90,90,'#34d399')+glow(62,136,34,'#e9b44c')+fan(160,214,[['J','s'],['9','h'],['A','d'],['10','c']],17)+`<g filter="url(#sh)"><circle cx="62" cy="136" r="26" fill="url(#gold)"/><circle cx="62" cy="136" r="26" fill="url(#gloss)"/><text x="62" y="144" text-anchor="middle" font-size="23" font-weight="900" font-family="Georgia,serif" fill="#3a2500">29</text></g>`),
+poker:S('#9b2f87','#3b1346','#12061c',glow(125,92,80,'#e056c1')+card(122,96,-12,'A','s')+card(168,92,9,'A','h')+chip(248,126,RED,22)+chip(274,98,'#1f6feb',17)+chip(228,94,'#e9b44c',15)),
+rummy:S('#1298c0','#0a4f73','#04182a',glow(160,90,90,'#38bdf8')+fan(160,214,[['3','d'],['4','d'],['5','d'],['6','d'],['K','s']],13)),
+teenpatti:S('#b02a2a','#561018','#1c0508',glow(130,92,80,'#ff6b5e')+fan(140,214,[['A','h'],['A','s'],['A','d']],22)+chip(240,134,'#e9b44c',22)+chip(266,110,'#e9b44c',16)),
+blackjack:S('#12875a','#07422c','#031a12',glow(150,92,80,'#34d399')+card(128,96,-10,'A','s')+card(176,92,8,'K','h')+goldPill(226,118,60,'21')+chip(46,140,'#1f6feb',20)+chip(72,126,RED,15)),
+memory:S('#7a5cf0','#30208a','#120b3d',glow(160,90,100,'#a78bfa')+(()=>{let o='';const f={1:'h',6:'h',3:'s'};for(let i=0;i<8;i++){const x=41+(i%4)*62,y=33+(i>3?62:0);o+=f[i]?`<g filter="url(#sh)"><rect x="${x}" y="${y}" width="52" height="52" rx="10" fill="url(#paper)"/>${suit(f[i],x+12,y+12,28,f[i]==='h'?RED:BLK)}</g>`:`<g filter="url(#sh)"><rect x="${x}" y="${y}" width="52" height="52" rx="10" fill="#5b45d6"/><rect x="${x+4}" y="${y+4}" width="44" height="44" rx="7" fill="none" stroke="#ffffff55"/><path d="M${x+26} ${y+14}l12 12-12 12-12-12z" fill="#ffffff38"/></g>`}return o})()),
+flappy:S('#8ae6ff','#38a6ee','#1d6fc9','<g fill="#fff" opacity=".9"><ellipse cx="58" cy="40" rx="30" ry="10"/><ellipse cx="80" cy="33" rx="18" ry="10"/><ellipse cx="256" cy="30" rx="26" ry="9"/><ellipse cx="274" cy="23" rx="14" ry="8"/></g>'+
+ '<g filter="url(#sh)"><rect x="208" y="-10" width="44" height="70" fill="url(#grn)"/><rect x="202" y="46" width="56" height="18" rx="5" fill="url(#grn)" stroke="#1d6b1d"/><rect x="208" y="124" width="44" height="60" fill="url(#grn)"/><rect x="202" y="116" width="56" height="18" rx="5" fill="url(#grn)" stroke="#1d6b1d"/></g><rect y="160" width="320" height="30" fill="#d9b36a"/><rect y="156" width="320" height="8" fill="#6cc04a"/>'+
+ '<g transform="translate(100 88) rotate(-14)" filter="url(#sh)"><path d="M-22 2L-36 -4 -34 10Z" fill="#f59e0b"/><circle r="22" fill="#ffd23f"/><circle r="22" fill="url(#gloss)"/><ellipse cx="-5" cy="7" rx="13" ry="8" fill="#ffe58a"/><circle cx="9" cy="-8" r="7.500" fill="#fff"/><circle cx="11" cy="-8" r="3.500" fill="#222"/><path d="M16 0L33 5 16 11Z" fill="#ff8a1f"/></g>'),
+snake:S('#217a4c','#0d3322','#04120b','<pattern id="sg" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#ffffff12"/></pattern><rect width="320" height="180" fill="url(#sg)"/>'+glow(160,100,90,'#34d399')+
+ '<g filter="url(#sh)"><path id="sp" d="M30 142C80 142 80 84 130 84S190 130 230 112S262 62 262 62" fill="none" stroke="#0a2a14" stroke-width="23" stroke-linecap="round"/><path d="M30 142C80 142 80 84 130 84S190 130 230 112S262 62 262 62" fill="none" stroke="url(#grn)" stroke-width="17" stroke-linecap="round"/><path d="M30 142C80 142 80 84 130 84S190 130 230 112S262 62 262 62" fill="none" stroke="#ffffff55" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 13"/></g>'+
+ '<g transform="translate(262 56)" filter="url(#sh)"><circle r="14" fill="#b6f26e"/><circle cx="-5" cy="-5" r="4.500" fill="#fff"/><circle cx="6" cy="-5" r="4.500" fill="#fff"/><circle cx="-5" cy="-5" r="2" fill="#111"/><circle cx="6" cy="-5" r="2" fill="#111"/><path d="M0 -14L0 -26M0 -26l-4 -5M0 -26l4 -5" stroke="#ff4d4d" stroke-width="2" fill="none" stroke-linecap="round"/></g>'+
+ '<g filter="url(#sh)"><circle cx="58" cy="54" r="15" fill="url(#red)"/><circle cx="58" cy="54" r="15" fill="url(#gloss)"/><path d="M58 40q2-9 9-10" stroke="#5a3a1a" stroke-width="2.500" fill="none"/><path d="M60 40q8-9 16-3-6 8-16 3z" fill="#4ade80"/></g>'),
+racing:S('#ffa45c','#c0396b','#2a1050','<circle cx="160" cy="98" r="40" fill="url(#gold)"/><rect y="96" width="320" height="90" fill="#1b0f3a"/><path d="M0 96h320" stroke="#ffffff33"/><polygon points="148,96 172,96 306,180 14,180" fill="#1d1f2e"/><path d="M148 96L14 180M172 96L306 180" stroke="#fff" stroke-opacity=".6" stroke-width="2"/>'+
+ [102,114,130,152].map((y,i)=>{const t=(y-96)/84,w=2+t*9,h=4+t*16;return `<rect x="${160-w/2}" y="${y}" width="${w}" height="${h}" fill="#fff" opacity=".85"/>`}).join('')+
+ '<g stroke="#fff" stroke-opacity=".35" stroke-width="2" stroke-linecap="round"><path d="M40 120l-22 10M52 140l-30 12M280 120l22 10M268 140l30 12"/></g>'+
+ '<g transform="translate(160 148)" filter="url(#sh)"><ellipse cy="30" rx="42" ry="6" fill="#000" opacity=".5"/><rect x="-39" y="14" width="10" height="16" rx="3" fill="#0c0c10"/><rect x="29" y="14" width="10" height="16" rx="3" fill="#0c0c10"/><rect x="-34" y="-4" width="68" height="32" rx="10" fill="url(#red)"/><path d="M-24 -4L-18 -22H18L24 -4Z" fill="#b3201a"/><path d="M-19 -6L-15 -19H15L19 -6Z" fill="#14202e"/><path d="M-12 -18L-7 -18L-11 -7L-17 -7Z" fill="#fff" opacity=".18"/><circle cx="-23" cy="9" r="9" fill="#ff2a2a" opacity=".5" filter="url(#bl)"/><circle cx="23" cy="9" r="9" fill="#ff2a2a" opacity=".5" filter="url(#bl)"/><rect x="-31" y="6" width="15" height="6" rx="3" fill="#ff5a4d"/><rect x="16" y="6" width="15" height="6" rx="3" fill="#ff5a4d"/><rect x="-9" y="14" width="18" height="8" rx="2" fill="#f3f0e6"/></g>'),
+sudoku:S('#3c5db3','#182e68','#0a1230',glow(160,90,90,'#60a5fa')+(()=>{const x0=106,y0=36,c=12;let o=`<g filter="url(#sh)"><rect x="${x0-7}" y="${y0-7}" width="122" height="122" rx="13" fill="#0b1738" stroke="#ffffff44"/></g><rect x="${x0+4*c}" y="${y0+4*c}" width="${c}" height="${c}" fill="#34d399" opacity=".55"/>`;
+ for(let i=0;i<=9;i++){const w=i%3?.5:1.4;o+=`<path d="M${x0+i*c} ${y0}V${y0+9*c}M${x0} ${y0+i*c}H${x0+9*c}" stroke="#ffffff" stroke-opacity="${i%3?.22:.6}" stroke-width="${w}"/>`}
+ [[0,0,5],[0,4,7],[1,0,6],[1,5,9],[2,1,9],[2,7,6],[3,0,8],[3,8,3],[4,0,4],[4,4,5],[4,8,1],[5,4,2],[6,1,6],[6,6,2],[7,3,4],[7,8,5],[8,4,8],[8,7,7]].forEach(([r,k,n])=>{o+=`<text x="${x0+k*c+6}" y="${y0+r*c+9.6}" text-anchor="middle" font-size="9" font-weight="${r===4&&k===4?900:600}" font-family="Georgia,serif" fill="${r===4&&k===4?'#eafff6':'#cfe0ff'}">${n}</text>`});return o})()),
+chess:S('#8a6038','#3d2616','#150d07',glow(165,80,90,'#ffb35c')+(()=>{let o='';for(let r=0;r<2;r++)for(let i=0;i<8;i++)o+=`<rect x="${i*40}" y="${148+r*16}" width="40" height="16" fill="${(i+r)%2?'#7a5230':'#ecdcb8'}"/>`;return o})()+'<rect y="148" width="320" height="32" fill="url(#gloss)" opacity=".35"/>'+piece(KING,128,152,1,'ivory')+piece(PAWN,204,152,1.15,'ebony')),
+ludo:S('#5a49d6','#241a78','#0a0733',glow(120,92,95,'#8b7bff')+'<g transform="translate(112 92) rotate(-10)" filter="url(#sh)"><rect x="-63" y="-63" width="126" height="126" rx="13" fill="#f6f3ea"/>'+
+ [[-62,-62,'#e5483c'],[16,-62,'#2fb871'],[16,16,'#f1c232'],[-62,16,'#3b82f6']].map(([x,y,c])=>`<rect x="${x}" y="${y}" width="46" height="46" rx="8" fill="${c}"/><rect x="${x+8}" y="${y+8}" width="30" height="30" rx="8" fill="#fff" opacity=".93"/>`+[[15,15],[31,15],[15,31],[31,31]].map(([a,b])=>`<circle cx="${x+a}" cy="${y+b}" r="3.600" fill="${c}"/>`).join('')).join('')+
+ '<polygon points="-16,-16 16,-16 0,0" fill="#2fb871"/><polygon points="16,-16 16,16 0,0" fill="#f1c232"/><polygon points="16,16 -16,16 0,0" fill="#3b82f6"/><polygon points="-16,16 -16,-16 0,0" fill="#e5483c"/></g>'+
+ '<g transform="translate(252 118) rotate(14)" filter="url(#sh)"><rect x="-27" y="-27" width="54" height="54" rx="13" fill="url(#paper)"/>'+[[-13,-13],[13,-13],[0,0],[-13,13],[13,13]].map(([a,b])=>`<circle cx="${a}" cy="${b}" r="4.600" fill="#14181f"/>`).join('')+'</g>'+tok(246,52,'#e5483c')+tok(278,66,'#f1c232')),
+carrom:S('#b9732f','#53301a','#1b0e06',glow(160,92,100,'#ffb35c')+'<g transform="translate(160 92) rotate(-8)" filter="url(#sh)"><rect x="-72" y="-72" width="144" height="144" rx="11" fill="#6b3d1b"/><rect x="-62" y="-62" width="124" height="124" rx="6" fill="url(#wood)"/><rect x="-48" y="-48" width="96" height="96" fill="none" stroke="#7a3b1c" stroke-width="1.500"/>'+
+ [[-57,-57],[57,-57],[57,57],[-57,57]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="8.500" fill="#14100c"/>`).join('')+'<circle r="23" fill="none" stroke="#b5391f" stroke-width="2"/><circle r="4" fill="none" stroke="#b5391f" stroke-width="1.500"/>'+
+ [0,1,2,3,4,5].map(i=>`<circle cx="${Math.cos(i*Math.PI/3)*12}" cy="${Math.sin(i*Math.PI/3)*12}" r="5.600" fill="${i%2?'#1d1d22':'#f6efe0'}" stroke="#0004"/>`).join('')+
+ '<circle r="5.600" fill="#d1322a"/><circle cx="34" cy="-26" r="5.600" fill="#f6efe0" stroke="#0004"/><circle cx="-34" cy="28" r="5.600" fill="#1d1d22"/><circle cx="-30" cy="-30" r="5.600" fill="#1d1d22"/><circle cx="36" cy="30" r="5.600" fill="#f6efe0" stroke="#0004"/>'+
+ '<circle cy="50" r="9" fill="#8fd3ff" stroke="#fff" stroke-width="1.500"/><circle cy="50" r="9" fill="url(#gloss)"/></g>')
+};
+
+/* ── Render ── */
+let activeCat='all',query='';
+
+function renderChips(){
+  $('chips').innerHTML=CATEGORIES.map(c=>
+    '<button type="button" class="chip'+(c.id===activeCat?' active':'')+'" data-cat="'+c.id+'" aria-pressed="'+(c.id===activeCat)+'">'+ico(c.id)+esc(c.label)+'<small>'+GAMES.filter(g=>c.id==='all'||g.cat===c.id).length+'</small></button>'
+  ).join('');
+}
+
+function cardHTML(g,i){
+  const tag=CAT_LABEL[g.cat]||'';
+  const art=ART[g.art]||'';
+  const bg=ART_BG[g.cat]||ART_BG.card;
+  if(g.href){
+    return '<a class="gcard" style="--i:'+i+'" href="'+esc(g.href)+'" aria-label="Play '+esc(g.name)+'">'+
+      '<div class="gart" style="background:'+bg+'"><span class="live"><i></i> Live</span><span class="tag">'+esc(tag)+'</span><div class="art">'+art+'</div></div>'+
+      '<div class="ginfo"><h2>'+esc(g.name)+'</h2><p>'+esc(g.desc)+'</p><span class="cta">Play now <span>→</span></span></div></a>';
+  }
+  return '<div class="gcard soon" style="--i:'+i+'" aria-disabled="true" role="group" aria-label="'+esc(g.name)+' — coming soon">'+
+    '<div class="gart" style="background:'+bg+'"><span class="tag">'+esc(tag)+'</span><div class="art">'+art+'</div></div>'+
+    '<div class="ginfo"><h2>'+esc(g.name)+'</h2><p>'+esc(g.desc)+'</p><span class="badge">Coming soon</span></div></div>';
+}
+
+function render(){
+  const q=query.trim().toLowerCase();
+  const list=GAMES.filter(g=>
+    (activeCat==='all'||g.cat===activeCat)&&
+    (!q||g.name.toLowerCase().includes(q))
+  );
+  $('grid').innerHTML=list.map((g,i)=>cardHTML(g,i)).join('');
+  $('empty').hidden=list.length>0;
+  if(list.length===0){
+    $('empty').textContent=q?('No games match “'+query.trim()+'”.'):'No games in this category yet.';
+  }
+}
+
+$('chips').addEventListener('click',e=>{
+  const b=e.target.closest('.chip');if(!b)return;
+  activeCat=b.dataset.cat;renderChips();render();
+});
+$('search').addEventListener('input',e=>{query=e.target.value;render();});
+
+document.addEventListener('pointermove',e=>{const t=e.target.closest&&e.target.closest('.gcard,.featured');if(!t)return;const r=t.getBoundingClientRect();t.style.setProperty('--mx',(e.clientX-r.left)+'px');t.style.setProperty('--my',(e.clientY-r.top)+'px')});
+document.addEventListener('keydown',e=>{if(e.key==='/'&&document.activeElement!==$('search')){e.preventDefault();$('search').focus()}});
+const liveN=GAMES.filter(g=>g.href).length;$('liveN').textContent=liveN;$('statN').textContent=liveN;
+GAMES.sort((x,y)=>!!y.href-!!x.href);renderChips();render();
+</script>
+</body>
+</html>
