@@ -244,7 +244,7 @@ function botPick(S){const pl=S.turn,noise=[70,25,4][S.lv|0];let best=0,bs=-1e9;
 /* ---------- state, host driver ---------- */
 let S=null,D=null,solo=false,isHost=false,inRoom=false,ws=null,code='',me=0,tokenR='',hostSeat=0,room=null,timer=0,lastRid=0,rolling=false,animOn=false,fill=true,lv=1,nb=1,uname='';
 let lastChat=0,lastKey='',chatOpen=false,unread=0,lastNote=0,ask=null,pend=[];const lastCt={},names={};
-let loc=false,tmOn=false,np=4,cfg={},hum=[1,1,1,1],nav=[],again=null;
+let loc=false,tmOn=false,np=4,cfg={},hum=[1,1,1,1],nav=[],again=null,seatDirty=false;
 const isMine=pl=>loc||pl===me;
 const TEAMN=['Red & Yellow','Green & Blue'];
 const sv=(k,v)=>{try{v===undefined?sessionStorage.removeItem(k):sessionStorage.setItem(k,v)}catch(e){}};
@@ -266,9 +266,9 @@ function handle(from,a){if(!S)return;
 function kick(){clearTimeout(timer);if(!S||!isHost||S.ph==='over')return;const pl=S.turn,bot=S.b[pl];
  if(S.ph==='skip')timer=setTimeout(()=>{nextTurn(S);commit()},1300);
  else if(S.ph==='roll')timer=setTimeout(()=>{doRoll(S);commit()},bot?1000:25000);
- else if(S.ph==='move'){const m=uniq(S,pl);
+ else if(S.ph==='move'){const m=uniq(S,pl),fast=loc||solo||pl===me;
   if(bot)timer=setTimeout(()=>move(pl,botPick(S)),1300);
-  else timer=setTimeout(()=>move(pl,m.length===1?m[0]:botPick(S)),m.length===1?800:25000)}}
+  else timer=setTimeout(()=>move(pl,m.length===1?m[0]:botPick(S)),m.length===1?(fast?800:25000):25000)}}
 function act(a){if(solo||isHost)handle(loc?S.turn:me,a);else wSend({type:'action',a:JSON.stringify(a)})}
 function say(t,e){t=(t||'').trim();if(!t||!S)return;act({k:'chat',t,e:e?1:0})}
 function startHost(){let act2=[0,1,2,3].filter(s=>room.players[s]);
@@ -370,7 +370,7 @@ function buildPcs(){[0,1,2,3].forEach(k=>$('ds'+k).innerHTML='');
  S.a.forEach(pl=>{const K=(pl+vr)%4,right=K===1||K===2,mine=pl===me;
   const c=document.createElement('div');c.className='pcard'+(right?' r':'')+(mine?' me':'');c.id='pc'+pl;c.style.setProperty('--c',COL[pl]);
   c.innerHTML=`<div class="pcol"><div class="av"><b class="ini"></b><i class="dot"></i></div><span class="pn"></span><em class="pg"></em></div><div class="dwrap"><div class="dice${mine?' me':''}" id="dice${pl}">${'<span></span>'.repeat(9)}</div></div>`;
-  if(mine||loc){const d=c.querySelector('.dice');d.tabIndex=0;d.setAttribute('role','button');d.setAttribute('aria-label','Roll dice');d.onclick=()=>{if(S.turn===pl)rollIt()};d.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();if(S.turn===pl)rollIt()}}}
+  const d=c.querySelector('.dice');d.tabIndex=0;d.setAttribute('role','button');d.setAttribute('aria-label','Roll dice');d.onclick=()=>{if(S.turn===pl)rollIt()};d.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();if(S.turn===pl)rollIt()}}
   $('ds'+K).appendChild(c)})}
 function showWin(){if($('win').style.display==='flex')return;$('win').style.display='flex';sfx('win');
  $('rkl').innerHTML=(S.tm&&S.win!=null)?[S.win,1-S.win].map((g,i)=>`<div class="rk"><span>${i?'':'🥇'}</span><i style="background:${COL[g]}"></i><i style="background:${COL[g+2]}"></i>Team ${g+1} · ${TEAMN[g]}</div>`).join(''):S.rank.map((pl,i)=>`<div class="rk"><span>${['🥇','🥈','🥉','4th'][i]}</span><i style="background:${COL[pl]}"></i>${esc(nameOf(pl))}</div>`).join('');
@@ -390,16 +390,29 @@ function startSolo(){solo=true;loc=false;again=startSolo;isHost=true;me=0;room=n
 function startLocal(){solo=true;loc=true;again=startLocal;isHost=true;me=0;room=null;const a=cfg.team?[0,1,2,3]:seatsFor(cfg.n);
  S=newState(a,[0,1,2,3].map(s=>!(a.includes(s)&&hum[s])),lv);S.tm=cfg.team?1:0;D=null;resetUi();show('game');commit()}
 /* ---------- online ---------- */
-function wSend(o){if(ws&&ws.readyState===1)ws.send(JSON.stringify(o))}
-function openWs(then){if(ws&&ws.readyState<=1){then&&then();return}
+const wq=[];
+function wSend(o){const s=JSON.stringify(o);
+ if(ws&&ws.readyState===1){try{ws.send(s)}catch(e){wq.push(s)}}
+ else{if(wq.length>30)wq.shift();wq.push(s);if(o.type==='action')toast('Reconnecting — your move will be sent when the connection is back')}}
+function wqFlush(){while(ws&&ws.readyState===1&&wq.length){const s=wq.shift();try{ws.send(s)}catch(e){wq.unshift(s);break}}}
+let pendingThen=null;
+function openWs(then){
+ if(ws&&ws.readyState===1){then&&then();return}
+ if(ws&&ws.readyState===0){if(then)pendingThen=then;return}
  ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws');
- ws.onopen=()=>{if(inRoom&&code&&tokenR)wSend({type:'resume',roomId:code,seat:me,token:tokenR});else then&&then()};
+ ws.onopen=()=>{if(inRoom&&code&&tokenR)wSend({type:'resume',roomId:code,seat:me,token:tokenR});
+  const pt=pendingThen;pendingThen=null;
+  if(pt)pt();else if(then)then();
+  wqFlush()};
  ws.onmessage=e=>{try{onMsg(JSON.parse(e.data))}catch(x){console.error(x)}};
  ws.onerror=()=>{if(!inRoom)toast('Online play needs the Card House server')};
  ws.onclose=()=>{if(inRoom)setTimeout(()=>openWs(),2000)}}
-function setRoom(i){if(i.roomId)code=i.roomId;if(i.players)room=i;const was=isHost;hostSeat=i.hostSeat!=null?i.hostSeat:hostSeat;isHost=hostSeat===me;
+function setRoom(i){
+ if(i.yourSeat!=null&&i.yourSeat!==me){me=i.yourSeat;seatDirty=true}
+ if(i.roomId)code=i.roomId;if(i.players)room=i;const was=isHost;hostSeat=i.hostSeat!=null?i.hostSeat:hostSeat;isHost=hostSeat===me;
  if(i.gameState===''&&isHost&&!S)startHost();else if(i.gameState)syncIn(i.gameState);
  [0,1,2,3].forEach(s=>{const p=room&&room.players&&room.players[s];if(p&&p.name)names[s]=p.name});if(isHost&&S)reclaim();if(S&&!was&&isHost)kick();
+ if(seatDirty){seatDirty=false;lastRid=0;sv('ludoRoom',JSON.stringify({code,seat:me,token:tokenR,tm:tmOn}));const bw=$('bw');if(bw)bw.dataset.a=''}
  if(S){show('game')}else if(inRoom){show('lobby');drawLobby()}}
 function seatHtml(s){const p=room&&room.players[s];return`<div class="seat" data-s="${s}" style="border-color:${p?COL[s]:''}"><b><i style="background:${COL[s]}"></i>${p?esc(p.name)+(s===me?' (you)':''):'Empty'}</b><small>${p?(p.connected===false?'Reconnecting…':s===hostSeat?'Host':'Ready'):'Tap to sit · else a bot plays'}</small></div>`}
 function drawLobby(){$('rc').textContent=code;$('hc').style.display=isHost?'block':'none';$('wh').style.display=isHost?'none':'block';
@@ -407,7 +420,7 @@ function drawLobby(){$('rc').textContent=code;$('hc').style.display=isHost?'bloc
  $('sts').innerHTML=tmOn?[0,1].map(g=>`<div class="lab" style="grid-column:1/-1;margin:4px 0 0">Team ${g+1} · ${TEAMN[g]}</div>`+seatHtml(g)+seatHtml(g+2)).join(''):[0,1,2,3].map(seatHtml).join('');
  $('sts').querySelectorAll('.seat').forEach(e=>e.onclick=()=>{const s=+e.dataset.s;if(!room.players[s])wSend({type:'sit',seat:s})})}
 function onMsg(d){switch(d.type){
- case'room-created':case'room-joined':me=d.yourSeat;if(d.token)tokenR=d.token;code=d.roomId;inRoom=true;sv('ludoRoom',JSON.stringify({code,seat:me,token:tokenR,tm:tmOn}));setRoom(d);break;
+ case'room-created':case'room-joined':if(d.yourSeat!=null)me=d.yourSeat;if(d.token)tokenR=d.token;code=d.roomId;inRoom=true;sv('ludoRoom',JSON.stringify({code,seat:me,token:tokenR,tm:tmOn}));setRoom(d);break;
  case'room-updated':case'game-started':case'host-changed':setRoom(d);break;
  case'game-state-sync':setRoom(d);syncIn(d.state);break;
  case'relay-action':if(isHost)try{handle(d.from,JSON.parse(d.action))}catch(e){}break;
@@ -421,7 +434,7 @@ function onMsg(d){switch(d.type){
  case'resume-failed':inRoom=false;sv('ludoRoom');S=null;show('menu');break;
  case'game-cancelled':if(S&&S.ph!=='over')toast('The host cancelled the game');S=null;D=null;$('win').style.display='none';resetUi();show('lobby');drawLobby();break;
  case'room-error':toast(d.message||'Something went wrong')}}
-function leave(){wSend({type:'leave-game'});inRoom=false;sv('ludoRoom');clearTimeout(timer);S=null;D=null;solo=false;loc=false;nav=[];isHost=false;$('win').style.display='none';resetUi();sheet('');if(ws)ws.close();ws=null;show('menu')}
+function leave(){wSend({type:'leave-game'});inRoom=false;sv('ludoRoom');clearTimeout(timer);wq.length=0;pendingThen=null;S=null;D=null;solo=false;loc=false;nav=[];isHost=false;$('win').style.display='none';resetUi();sheet('');if(ws)ws.close();ws=null;show('menu')}
 /* ---------- wire up ---------- */
 document.addEventListener('pointerdown',()=>ac(),{once:true});
 uname=localStorage.ludoName||'';
@@ -437,8 +450,8 @@ function back(){nav.pop();const v=nav[nav.length-1];if(v)draw(v);else show('menu
 function draw(v){show('sub');$('sub').innerHTML=VW[v]();if($('cl'))chips('cl',LV,()=>lv,x=>lv=x);window.scrollTo(0,0)}
 function setHum(s,v){const a=cfg.team?[0,1,2,3]:seatsFor(cfg.n);if(!v&&a.filter(x=>x===s?0:hum[x]).length<(cfg.team?1:2))return toast('Need more human players');hum[s]=v;draw('lset')}
 function setNm(v){uname=v.trim();try{localStorage.ludoName=uname}catch(e){}}
-function mkRoom(){if(!uname)return toast('Enter your name first');solo=false;loc=false;tmOn=!!cfg.team;openWs(()=>wSend({type:'create-room',playerName:uname}))}
-function joinRoom(){const c=$('cd').value.trim().toUpperCase();if(!uname)return toast('Enter your name first');if(!c)return toast('Enter the table code');solo=false;loc=false;tmOn=!!cfg.team;openWs(()=>wSend({type:'join-room',roomId:c,playerName:uname}))}
+function mkRoom(){if(!uname)return toast('Enter your name first');solo=false;loc=false;tmOn=!!cfg.team;sv('ludoRoom');inRoom=false;code='';tokenR='';openWs(()=>wSend({type:'create-room',playerName:uname}))}
+function joinRoom(){const c=$('cd').value.trim().toUpperCase();if(!uname)return toast('Enter your name first');if(!c)return toast('Enter the table code');solo=false;loc=false;tmOn=!!cfg.team;sv('ludoRoom');inRoom=false;code='';tokenR='';openWs(()=>wSend({type:'join-room',roomId:c,playerName:uname}))}
 const VW={
  bot:()=>hdr('vs Bot')+lvRow+opt('y','🤖','vs 1 Bot','You and 1 bot','nb=1;startSolo()')+opt('y','🤖🤖','vs 2 Bots','You and 2 bots','nb=2;startSolo()')+opt('y','🤖🤖🤖','vs 3 Bots','You and 3 bots','nb=3;startSolo()'),
  local:()=>hdr('Local Multiplayer')+[2,3,4].map(n=>opt('gr','👥',n+' Players','Pass the device around',`go('lset',{n:${n},team:0})`)).join(''),
