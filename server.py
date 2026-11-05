@@ -631,12 +631,21 @@ async def game29(request):
     return resp
 
 
+async def gameLudo(request):
+    resp = web.FileResponse(STATIC_DIR / 'ludo.html')
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '0'
+    return resp
+
+
 def create_app():
     app = web.Application()
     app.router.add_get('/ws', websocket_handler)
     app.router.add_get('/', index)
     app.router.add_get('/29', game29)
     app.router.add_get('/play', game29)
+    app.router.add_get('/ludo', gameLudo)
     app.router.add_static('/', STATIC_DIR, name='static')
     app.middlewares.append(no_cache_middleware)
     return app
