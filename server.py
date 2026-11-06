@@ -527,7 +527,7 @@ async def websocket_handler(request):
                 if room['seats'][seat] is None:
                     continue
                 e = str(data.get('e', ''))
-                if e not in ('👍', '😂', '😮', '👏', '😢', '🔥'):
+                if e not in ('👍', '👎', '👏', '🙌', '🤝', '💪', '🙏', '\u270c\ufe0f', '👌', '🔥', '⭐', '💥', '🎉', '😀', '😂', '😮', '😢', '😡', '🤔', '🥳'):
                     continue
                 await _broadcast(room, {'type': 'reaction', 'seat': seat, 'e': e})
 
