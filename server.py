@@ -25,7 +25,8 @@ EMPTY_GAME_DELETE = 30
 
 # ── Room / game state ──────────────────────────────────────────────
 
-ROOMS = {}          # room_id -> dict   (see _make_room)
+ROOMS = {}          # 29-card rooms
+RUMMY_ROOMS = {}    # Rummy rooms are isolated from 29-card rooms
 
 def _make_room(room_id, host_seat, host_ws, host_name):
     return {
@@ -599,6 +600,167 @@ async def websocket_handler(request):
     return ws
 
 
+
+# ── Rummy multiplayer rooms (separate from 29-card rooms) ──────────
+def _rummy_info(room):
+    return {
+        'roomId': room['id'], 'mode': room['mode'],
+        'maxPlayers': room['max_players'], 'hostSeat': room['host_seat'],
+        'seatMap': room.get('seat_map'),
+        'players': [({'seat': i, 'name': p['name'], 'connected': p['ws'] is not None}
+                     if p else None) for i, p in enumerate(room['seats'])],
+        'started': room['state'] is not None,
+    }
+
+async def _rummy_send(ws, payload):
+    if ws is not None:
+        try: await ws.send_str(json.dumps(payload))
+        except Exception: pass
+
+async def _rummy_broadcast(room, payload, exclude=None):
+    raw = json.dumps(payload)
+    for player in room['seats']:
+        if player and player['ws'] is not None and player['ws'] is not exclude:
+            try: await player['ws'].send_str(raw)
+            except Exception: pass
+
+async def _rummy_sync(room):
+    if room['state'] is None: return
+    try: state = json.loads(room['state'])
+    except (TypeError, json.JSONDecodeError): return
+    for seat, player in enumerate(room['seats']):
+        if not player or player['ws'] is None: continue
+        view = json.loads(json.dumps(state))
+        # Only the host receives the authoritative full state. Other clients
+        # receive their own hand; every other hand is replaced by card-count placeholders.
+        if seat != room['host_seat']:
+            seat_map = room.get('seat_map') or list(range(len(view.get('hands', []))))
+            own_index = seat_map.index(seat) if seat in seat_map else -1
+            for i, hand in enumerate(view.get('hands', [])):
+                if i != own_index:
+                    view['hands'][i] = [None] * len(hand)
+        await _rummy_send(player['ws'], {
+            'type': 'rummy-state', 'state': view,
+            **_rummy_info(room), 'yourSeat': seat,
+        })
+
+async def rummy_websocket_handler(request):
+    ws = web.WebSocketResponse(heartbeat=25)
+    await ws.prepare(request)
+    session = {'room': None, 'seat': None}
+    try:
+        async for msg in ws:
+            if msg.type != web.WSMsgType.TEXT: continue
+            try: data = json.loads(msg.data)
+            except (ValueError, TypeError): continue
+            kind = data.get('type')
+            rid, seat = session['room'], session['seat']
+            room = RUMMY_ROOMS.get(rid) if rid else None
+            if kind == 'rummy-create':
+                name = _clean_name(data.get('name')) or 'Player'
+                mode = 'std' if data.get('mode') == 'std' else 'in'
+                cap = 4 if mode == 'std' else 6
+                rid = ''.join(random.choices('ABCDEFGHJKLMNPQRSTUVWXYZ23456789', k=6))
+                while rid in RUMMY_ROOMS: rid = ''.join(random.choices('ABCDEFGHJKLMNPQRSTUVWXYZ23456789', k=6))
+                room = {'id': rid, 'mode': mode, 'max_players': cap, 'host_seat': 0,
+                        'seats': [None] * cap, 'state': None, 'tokens': {}}
+                token = secrets.token_urlsafe(18)
+                room['seats'][0] = {'name': name, 'ws': ws, 'token': token}
+                RUMMY_ROOMS[rid] = room; session.update(room=rid, seat=0)
+                await _rummy_send(ws, {'type':'rummy-room', 'token':token, 'yourSeat':0, **_rummy_info(room)})
+            elif kind == 'rummy-join':
+                rid = str(data.get('roomId','')).strip().upper(); room = RUMMY_ROOMS.get(rid)
+                if not room:
+                    await _rummy_send(ws, {'type':'rummy-error','message':'Room not found'}); continue
+                if room['state'] is not None:
+                    await _rummy_send(ws, {'type':'rummy-error','message':'This game has already started'}); continue
+                if data.get('mode') and data.get('mode') != room['mode']:
+                    await _rummy_send(ws, {'type':'rummy-error','message':'This room uses a different Rummy mode'}); continue
+                seat = next((i for i,p in enumerate(room['seats']) if p is None), None)
+                if seat is None:
+                    await _rummy_send(ws, {'type':'rummy-error','message':'Room is full'}); continue
+                name = _clean_name(data.get('name')) or 'Player'; token = secrets.token_urlsafe(18)
+                room['seats'][seat] = {'name':name,'ws':ws,'token':token}
+                session.update(room=rid,seat=seat)
+                await _rummy_send(ws, {'type':'rummy-room','token':token,'yourSeat':seat,**_rummy_info(room)})
+                await _rummy_broadcast(room, {'type':'rummy-lobby',**_rummy_info(room)})
+            elif kind == 'rummy-resume':
+                rid = str(data.get('roomId','')).upper(); room = RUMMY_ROOMS.get(rid)
+                seat = data.get('seat'); token = str(data.get('token',''))
+                if not room or not isinstance(seat,int) or isinstance(seat,bool) or seat not in range(len(room['seats'])) or not room['seats'][seat] or not secrets.compare_digest(room['seats'][seat]['token'],token):
+                    await _rummy_send(ws, {'type':'rummy-error','message':'Your room session has expired'}); continue
+                room['seats'][seat]['ws']=ws; session.update(room=rid,seat=seat)
+                await _rummy_send(ws, {'type':'rummy-room','token':token,'yourSeat':seat,**_rummy_info(room)})
+                await _rummy_sync(room)
+                await _rummy_broadcast(room, {'type':'rummy-lobby',**_rummy_info(room)}, exclude=ws)
+            elif kind == 'rummy-start':
+                if not room or seat != room['host_seat']: continue
+                count = sum(p is not None for p in room['seats'])
+                if count < 2:
+                    await _rummy_send(ws, {'type':'rummy-error','message':'At least two players are required'}); continue
+                room['state'] = ''
+                room['seat_map'] = [i for i, player in enumerate(room['seats']) if player is not None]
+                await _rummy_broadcast(room, {'type':'rummy-started',**_rummy_info(room)})
+            elif kind == 'rummy-state':
+                if not room or seat != room['host_seat'] or room['state'] is None: continue
+                raw = data.get('state')
+                if not isinstance(raw,str) or len(raw)>200000: continue
+                try:
+                    parsed=json.loads(raw)
+                    if not isinstance(parsed,dict) or not isinstance(parsed.get('hands'),list): continue
+                except (ValueError,TypeError): continue
+                room['state']=raw
+                await _rummy_sync(room)
+            elif kind == 'rummy-action':
+                if not room or room['state'] is None: continue
+                host=room['seats'][room['host_seat']]
+                if host and host['ws']:
+                    await _rummy_send(host['ws'], {'type':'rummy-relay','from':seat,'action':data.get('action',{})})
+            elif kind == 'rummy-leave':
+                if not room or seat is None: continue
+                player=room['seats'][seat]
+                if player:
+                    player['ws']=None
+                    if room['state'] is None:
+                        room['seats'][seat]=None
+                        if seat==room['host_seat']:
+                            nxt=next((i for i,p in enumerate(room['seats']) if p),None)
+                            if nxt is None: RUMMY_ROOMS.pop(room['id'],None)
+                            else: room['host_seat']=nxt
+                        await _rummy_broadcast(room, {'type':'rummy-lobby',**_rummy_info(room)})
+                    else:
+                        player['left']=True
+                        host = room['seats'][room['host_seat']]
+                        if seat == room['host_seat']:
+                            successor = next((i for i, other in enumerate(room['seats'])
+                                              if i != seat and other and other['ws'] is not None), None)
+                            if successor is not None:
+                                room['host_seat'] = successor
+                        elif host and host['ws'] is not None:
+                            await _rummy_send(host['ws'], {'type':'rummy-player-left','seat':seat,'name':player['name']})
+                        await _rummy_broadcast(room, {'type':'rummy-lobby',**_rummy_info(room)})
+                        await _rummy_sync(room)
+                session.update(room=None,seat=None)
+    except Exception as exc:
+        print(f'[rummy] websocket error: {exc!r}')
+    finally:
+        rid, seat = session.get('room'), session.get('seat')
+        room = RUMMY_ROOMS.get(rid) if rid else None
+        if room and seat is not None and room['seats'][seat] and room['seats'][seat]['ws'] is ws:
+            room['seats'][seat]['ws'] = None
+            # If the host disappears, hand authority to the next connected
+            # player. The server still holds the full state and can safely
+            # send it only to the newly elected host.
+            if seat == room['host_seat']:
+                successor = next((i for i, player in enumerate(room['seats'])
+                                  if i != seat and player and player['ws'] is not None), None)
+                if successor is not None:
+                    room['host_seat'] = successor
+            await _rummy_broadcast(room, {'type':'rummy-lobby',**_rummy_info(room)})
+            await _rummy_sync(room)
+    return ws
+
+
 # ── Middleware: no-cache for HTML ──────────────────────────────────
 
 async def no_cache_middleware(app, handler):
@@ -639,13 +801,32 @@ async def gameLudo(request):
     return resp
 
 
+async def gameRummy(request):
+    resp = web.FileResponse(STATIC_DIR / 'rummy.html')
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '0'
+    return resp
+
+
+async def gameMemory(request):
+    resp = web.FileResponse(STATIC_DIR / 'memory.html')
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '0'
+    return resp
+
+
 def create_app():
     app = web.Application()
     app.router.add_get('/ws', websocket_handler)
+    app.router.add_get('/rummy-ws', rummy_websocket_handler)
     app.router.add_get('/', index)
     app.router.add_get('/29', game29)
     app.router.add_get('/play', game29)
     app.router.add_get('/ludo', gameLudo)
+    app.router.add_get('/memory', gameMemory)
+    app.router.add_get('/rummy', gameRummy)
     app.router.add_static('/', STATIC_DIR, name='static')
     app.middlewares.append(no_cache_middleware)
     return app
