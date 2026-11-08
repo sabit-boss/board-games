@@ -157,6 +157,8 @@ summary{cursor:pointer;color:var(--tx);font-weight:600}
 .sfxh b{flex:1;min-width:0;font-size:16px;text-align:left}
 .sfxvol{display:flex;align-items:center;gap:6px;font-size:14px}
 .sfxvol input{width:min(88px,24vw);min-width:56px;accent-color:var(--ac)}
+.sndvol{display:flex;align-items:center;gap:6px;font-size:14px;margin-top:4px;padding-top:4px;border-top:1px solid var(--ln)}
+.sndvol input{width:min(100px,30vw);min-width:60px;accent-color:var(--ac)}
 .sfxg{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px;align-content:start;padding-bottom:6px}
 .sfxi{position:relative;border:2px solid var(--ln);border-radius:14px;overflow:hidden;background:var(--sf);padding:0;cursor:pointer;color:inherit;display:flex;flex-direction:column;font:inherit}
 .sfxi img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#0004}
@@ -431,11 +433,13 @@ button.gold,.chip.x{background:var(--gold);color:#2a1d00;border-color:#c8953a;bo
 </div>
 <div id="sndpop" hidden>
 <button id="sndUi" onclick="setSnd('ui')"></button>
+<div class="sndvol"><span id="uivi">🔊</span><input type="range" id="uivol" min="0" max="100" oninput="setUiVol(this.value)" aria-label="Game sounds volume"></div>
 <button id="sndMeme" onclick="setSnd('meme')"></button>
+<div class="sndvol"><span id="sfxvi2">🔊</span><input type="range" id="sfxvol2" min="0" max="100" oninput="setSfxVol(this.value)" aria-label="Meme sounds volume"></div>
 <button id="sndAll" class="pri" onclick="setSnd('all')"></button>
 </div>
 <div id="sfxsheet" hidden onclick="if(event.target===this)closeSfx()"><div class="sfxp">
-<div class="sfxh"><b>Sound board</b><span class="sfxvol"><span id="sfxvi">🔊</span><input type="range" id="sfxvol" min="0" max="100" oninput="setSfxVol(this.value)" aria-label="Sound board volume"></span><button class="sm" onclick="closeSfx()" aria-label="Close sound board">✕</button></div>
+<div class="sfxh"><b>Sound board</b><button class="sm" onclick="closeSfx()" aria-label="Close sound board">✕</button></div>
 <div class="sfxg" id="sfxg"></div>
 </div></div>
 <div id="modal" class="mb" hidden></div>
@@ -458,7 +462,7 @@ const cleanN=n=>String(n||'Player').replace(/[<>&"'`\\]/g,'').trim().slice(0,16)
 var syncErr=0;
 const SU=['♠','♥','♦','♣'],RK=['J','9','A','10','K','Q','8','7'],PT={J:3,9:2,A:1,10:1};
 const tm=s=>s%2,pt=c=>PT[c.r]||0,red=c=>c.s===1||c.s===2,cid=c=>c.s+c.r;
-let warnSeen=-1,G=null,solo=false,isHost=false,uid=null,uname='',me=0,myTeam=-1,db=null,tdoc=null,code='',seats=[null,null,null,null],lastN={},baseline=true,tmr=0,hb=16,seenQ=-1,seenT=new Set(),wr=false,dirty=false,lmsg='',wasMine=false,selT=null,dismissId=-1,ml=false,myAv=loadAv(),selP=null,seenR=-1,lastId=-1,overId=-1,lastMsg='',lastRx=0,snOn=loadSn(),seenS=-1,sfxVol=loadSfxVol(),sfxAudio=null,lastSfxSend=0,sfxBuilt=false,ws=null,wsOnline=false;
+let warnSeen=-1,G=null,solo=false,isHost=false,uid=null,uname='',me=0,myTeam=-1,db=null,tdoc=null,code='',seats=[null,null,null,null],lastN={},baseline=true,tmr=0,hb=16,seenQ=-1,seenT=new Set(),wr=false,dirty=false,lmsg='',wasMine=false,selT=null,dismissId=-1,ml=false,myAv=loadAv(),selP=null,seenR=-1,lastId=-1,overId=-1,lastMsg='',lastRx=0,snOn=loadSn(),seenS=-1,sfxVol=loadSfxVol(),uiVol=loadUiVol(),sfxAudio=null,lastSfxSend=0,sfxBuilt=false,ws=null,wsOnline=false;
 let lobbyMode=null,roomToken=null,lastSyncAt=0,syncLoop=0;
 let lastModalHTML='',modalPopTimer=0;
 let dlgActions=[],dlgQueue=[],dlgActive=false,dlgActiveSeat=null;
@@ -1414,16 +1418,41 @@ async function setAv(i){
 const SFX=[{"f":"sound effect/sounds/aayein-meme.mp3","i":"sound effect/image/aayein-meme.jpeg","n":"Aayein meme"},{"f":"sound effect/sounds/abe-sale.mp3","i":"sound effect/image/abe-sale.jpg","n":"Abe sale"},{"f":"sound effect/sounds/abhi-maza-ayagga (mp3cut.net).mp3","i":"sound effect/image/abhi-maza-ayagga (mp3cut.net).jpeg","n":"Abhi maza ayagga"},{"f":"sound effect/sounds/amar-vul-hoyeche-khoma-kore-den (mp3cut.net).mp3","i":"sound effect/image/amar-vul-hoyeche-khoma-kore-den (mp3cut.net).jpeg","n":"Amar vul hoyeche khoma kore den"},{"f":"sound effect/sounds/anime-ahh.mp3","i":"sound effect/image/anime-ahh.jpg","n":"Anime ahh"},{"f":"sound effect/sounds/anime-girl-voice.mp3","i":"sound effect/image/anime-girl-voice.jpg","n":"Anime girl voice"},{"f":"sound effect/sounds/are-baap-re-yaad-aya.mp3","i":"sound effect/image/are-baap-re-yaad-aya.jpeg","n":"Are baap re yaad aya"},{"f":"sound effect/sounds/ashraful_rs0EBpS (mp3cut.net).mp3","i":"sound effect/image/ashraful_rs0EBpS (mp3cut.net).png","n":"Ashraful rs0EBpS"},{"f":"sound effect/sounds/ei-bosun-toh (mp3cut.net).mp3","i":"sound effect/image/ei-bosun-toh (mp3cut.net).jpeg","n":"Ei bosun toh"},{"f":"sound effect/sounds/ei-tomra-kemon-aso-helicopter-milon (mp3cut.net).mp3","i":"sound effect/image/ei-tomra-kemon-aso-helicopter-milon (mp3cut.net).jpeg","n":"Ei tomra kemon aso helicopter milon"},{"f":"sound effect/sounds/ekbaar-dhokaa-khaaichi (mp3cut.net).mp3","i":"sound effect/image/ekbaar-dhokaa-khaaichi (mp3cut.net).jpeg","n":"Ekbaar dhokaa khaaichi"},{"f":"sound effect/sounds/emotional-damage-meme (mp3cut.net).mp3","i":"sound effect/image/emotional-damage-meme (mp3cut.net).png","n":"Emotional damage meme"},{"f":"sound effect/sounds/griberaa-bhaalo-aacho.mp3","i":"sound effect/image/griberaa-bhaalo-aacho.jpeg","n":"Griberaa bhaalo aacho"},{"f":"sound effect/sounds/gx-panel-bangladesh (mp3cut.net).mp3","i":"sound effect/image/gx-panel-bangladesh (mp3cut.net).jpeg","n":"Gx panel bangladesh"},{"f":"sound effect/sounds/maaunttaan-ddio-bhyyer-golaa-maari.mp3","i":"sound effect/image/maaunttaan-ddio-bhyyer-golaa-maari.jpg","n":"Maaunttaan ddio bhyyer golaa maari"},{"f":"sound effect/sounds/my-name-is-shamol (mp3cut.net) (1).mp3","i":"sound effect/image/my-name-is-shamol (mp3cut.net) (1).jpg","n":"My name is shamol"},{"f":"sound effect/sounds/nahi-nahi-saluke-yaha-kuchh-to-gadbad-hai.mp3","i":"sound effect/image/nahi-nahi-saluke-yaha-kuchh-to-gadbad-hai.jpeg","n":"Nahi nahi saluke yaha kuchh to gadbad hai"},{"f":"sound effect/sounds/pure-debo-dutto-daanaa.mp3","i":"sound effect/image/pura debo dutto daanaa meme.png","n":"Pure debo dutto daanaa"},{"f":"sound effect/sounds/rag-korla_xg1tnet.mp3","i":"sound effect/image/rag-korla_xg1tnet.jpeg","n":"Rag korla xg1tnet"},{"f":"sound effect/sounds/see you not for mine.mp3","i":"sound effect/image/see you not for  mine.jpeg","n":"See you not for mine"},{"f":"sound effect/sounds/tmp_z5b93np (mp3cut.net).mp3","i":"sound effect/image/tmp_z5b93np (mp3cut.net).jpeg","n":"Tmp z5b93np"}];
 function loadSn(){try{return localStorage.getItem('snd29')!=='0'}catch(e){return true}}
 function loadSfxVol(){try{const v=+localStorage.getItem('sfxvol');return Number.isFinite(v)&&v>=0&&v<=100?v:80}catch(e){return 80}}
+function loadUiVol(){try{const v=+localStorage.getItem('uivol');return Number.isFinite(v)&&v>=0&&v<=100?v:80}catch(e){return 80}}
 let AC=null;
 function actx(){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC}catch(e){return null}}
-function tone(f,d,ty,v,at){const c=actx();if(!c)return;const n=c.currentTime+(at||0),o=c.createOscillator(),g=c.createGain();o.type=ty||'sine';o.frequency.value=f;g.gain.setValueAtTime(v||.1,n);g.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(g);g.connect(c.destination);o.start(n);o.stop(n+d)}
-function noise(d,v,at){const c=actx();if(!c)return;const n=c.currentTime+(at||0),b=c.createBuffer(1,Math.ceil(c.sampleRate*d),c.sampleRate),x=b.getChannelData(0);for(let i=0;i<x.length;i++)x[i]=(Math.random()*2-1)*(1-i/x.length);const s=c.createBufferSource(),g=c.createGain(),f=c.createBiquadFilter();f.type='highpass';f.frequency.value=1500;s.buffer=b;g.gain.value=v||.1;s.connect(f);f.connect(g);g.connect(c.destination);s.start(n)}
-function soft(f,d,v,at,ty){const c=actx();if(!c)return;const n=c.currentTime+(at||0),o=c.createOscillator(),g=c.createGain(),lp=c.createBiquadFilter();o.type=ty||'sine';o.frequency.value=f;lp.type='lowpass';lp.frequency.value=2600;g.gain.setValueAtTime(.0001,n);g.gain.linearRampToValueAtTime(v||.05,n+.015);g.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(lp);lp.connect(g);g.connect(c.destination);o.start(n);o.stop(n+d+.02)}
-function bell(f,d,v,at){soft(f,d,v,at);soft(f*2,d*.6,(v||.05)*.3,at)}
-function swish(d,v,at,fq){const c=actx();if(!c)return;const n=c.currentTime+(at||0),b=c.createBuffer(1,Math.ceil(c.sampleRate*d),c.sampleRate),x=b.getChannelData(0);for(let i=0;i<x.length;i++)x[i]=(Math.random()*2-1)*Math.sin(Math.PI*i/x.length);const s=c.createBufferSource(),g=c.createGain(),f=c.createBiquadFilter();f.type='bandpass';f.frequency.value=fq||1800;f.Q.value=.7;s.buffer=b;g.gain.value=v||.08;s.connect(f);f.connect(g);g.connect(c.destination);s.start(n)}
-const SND={play:()=>{swish(.07,.1,0,2000);soft(160,.1,.07,.005)},deal:()=>[0,.08,.16,.24].forEach((t,i)=>swish(.07,.07,t,1500+i*200)),turn:()=>{bell(659,.35,.045);bell(988,.4,.04,.1)},win:()=>[523,659,784,1047].forEach((f,i)=>bell(f,.55,.06,i*.11)),lose:()=>{soft(262,.5,.05,0,'triangle');soft(196,.6,.05,.18,'triangle')},bid:()=>bell(740,.18,.04),dbl:()=>{soft(311,.4,.06,0,'triangle');soft(466,.45,.05,.12,'triangle')},rev:()=>{bell(523,.3,.05);bell(784,.4,.05,.1)},fan:()=>[523,659,784,1047].forEach((f,i)=>bell(f,.6,.05,i*.12)),sad:()=>[392,330,262].forEach((f,i)=>soft(f,.5,.05,i*.2,'triangle')),chat:()=>bell(880,.2,.035),flip:()=>{swish(.14,.09,0,2400);[784,988,1175,1568].forEach((f,i)=>bell(f,.45,.045,.05+i*.07))},pop:()=>{bell(740,.22,.04);soft(1110,.25,.02,.04)},close:()=>bell(554,.16,.03),tap:()=>soft(620,.07,.025)};
+function actx(){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC}catch(e){return null}}
+let uiGain=null;
+function getUiGain(c){if(!uiGain){uiGain=c.createGain();uiGain.gain.value=uiVol/100;uiGain.connect(c.destination)}return uiGain}
+
+function tone(f,d,ty,v,at,dest){const c=actx();if(!c)return;const n=c.currentTime+(at||0),o=c.createOscillator(),g=c.createGain();o.type=ty||'sine';o.frequency.value=f;g.gain.setValueAtTime(v||.1,n);g.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(g);g.connect(dest||c.destination);o.start(n);o.stop(n+d)}
+function noise(d,v,at,dest){const c=actx();if(!c)return;const n=c.currentTime+(at||0),b=c.createBuffer(1,Math.ceil(c.sampleRate*d),c.sampleRate),x=b.getChannelData(0);for(let i=0;i<x.length;i++)x[i]=(Math.random()*2-1)*(1-i/x.length);const s=c.createBufferSource(),g=c.createGain(),f=c.createBiquadFilter();f.type='highpass';f.frequency.value=1500;s.buffer=b;g.gain.value=v||.1;s.connect(f);f.connect(g);g.connect(dest||c.destination);s.start(n)}
+function soft(f,d,v,at,ty,dest){const c=actx();if(!c)return;const n=c.currentTime+(at||0),o=c.createOscillator(),g=c.createGain(),lp=c.createBiquadFilter();o.type=ty||'sine';o.frequency.value=f;lp.type='lowpass';lp.frequency.value=2600;g.gain.setValueAtTime(.0001,n);g.gain.linearRampToValueAtTime(v||.05,n+.015);g.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(lp);lp.connect(g);g.connect(dest||c.destination);o.start(n);o.stop(n+d+.02)}
+function bell(f,d,v,at,dest){soft(f,d,v,at,'sine',dest);soft(f*2,d*.6,(v||.05)*.3,at,'sine',dest)}
+function swish(d,v,at,fq,dest){const c=actx();if(!c)return;const n=c.currentTime+(at||0),b=c.createBuffer(1,Math.ceil(c.sampleRate*d),c.sampleRate),x=b.getChannelData(0);for(let i=0;i<x.length;i++)x[i]=(Math.random()*2-1)*Math.sin(Math.PI*i/x.length);const s=c.createBufferSource(),g=c.createGain(),f=c.createBiquadFilter();f.type='bandpass';f.frequency.value=fq||1800;f.Q.value=.7;s.buffer=b;g.gain.value=v||.08;s.connect(f);f.connect(g);g.connect(dest||c.destination);s.start(n)}
+
+const SND={play:(dest)=>{swish(.07,.1,0,2000,dest);soft(160,.1,.07,.005,'sine',dest)},deal:(dest)=>[0,.08,.16,.24].forEach((t,i)=>swish(.07,.07,t,1500+i*200,dest)),turn:(dest)=>{bell(659,.35,.045,0,dest);bell(988,.4,.04,.1,dest)},win:(dest)=>{[523,659,784,1047].forEach((f,i)=>bell(f,.55,.06,i*.11,dest))},lose:(dest)=>{soft(262,.5,.05,0,'triangle',dest);soft(196,.6,.05,.18,'triangle',dest)},bid:(dest)=>bell(740,.18,.04,0,dest),dbl:(dest)=>{soft(311,.4,.06,0,'triangle',dest);soft(466,.45,.05,.12,'triangle',dest)},rev:(dest)=>{bell(523,.3,.05,0,dest);bell(784,.4,.05,.1,dest)},fan:(dest)=>{[523,659,784,1047].forEach((f,i)=>bell(f,.6,.05,i*.12,dest))},sad:(dest)=>{[392,330,262].forEach((f,i)=>soft(f,.5,.05,i*.2,'triangle',dest))},chat:(dest)=>bell(880,.2,.035,0,dest),flip:(dest)=>{swish(.14,.09,0,2400,dest);[784,988,1175,1568].forEach((f,i)=>bell(f,.45,.045,.05+i*.07,dest))},pop:(dest)=>{bell(740,.22,.04,0,dest);soft(1110,.25,.02,.04,'sine',dest)},close:(dest)=>bell(554,.16,.03,0,dest),tap:(dest)=>soft(620,.07,.025,0,'sine',dest)};
+
 function snd(k){if(snOn&&SND[k])try{SND[k]()}catch(e){}}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button');if(b&&!b.closest('.sfxi'))snd('tap')},true);
+
+// Close popups when clicking outside
+document.addEventListener('click',e=>{
+  const popups=['sndpop','sfxsheet','chatpop','rx','lt'];
+  popups.forEach(id=>{
+    const el=$(id);
+    if(el&&!el.hidden&&!el.contains(e.target)){
+      const triggers={'sndpop':'snb','sfxsheet':'sfxBtn','chatpop':null,'rx':null,'lt':null};
+      const triggerId=triggers[id];
+      if(triggerId&&$(triggerId)&&$(triggerId).contains(e.target)) return;
+      if(id==='sfxsheet') closeSfx();
+      else if(id==='sndpop') el.hidden=true;
+      else if(id==='chatpop') el.hidden=true;
+      else if(id==='rx') el.hidden=true;
+      else if(id==='lt') el.hidden=true;
+    }
+  });
+});
 function loadMeme(){try{return localStorage.getItem('meme29')!=='0'}catch(e){return true}}
 let memeOn=loadMeme();
 function sndIc(){return (snOn||memeOn)
@@ -1434,6 +1463,12 @@ function paintSnd(){
  $('sndMeme').textContent=(memeOn?'\uD83D\uDD0A':'\uD83D\uDD07')+' Meme sounds: '+(memeOn?'On':'Off');
  $('sndAll').textContent=(snOn||memeOn)?'Mute all':'Unmute all';
  $('snb').innerHTML=sndIc();
+ const uv=$('uivol'), sv=$('sfxvol2');
+ if(uv)uv.value=uiVol;
+ if(sv)sv.value=sfxVol;
+ const uvi=$('uivi'), svi=$('sfxvi2');
+ if(uvi)uvi.textContent=uiVol===0?'🔇':uiVol<50?'🔉':'🔊';
+ if(svi)svi.textContent=sfxVol===0?'🔇':sfxVol<50?'🔉':'🔊';
 }
 function toggleSndMenu(){
  const p=$('sndpop');p.hidden=!p.hidden;
@@ -1493,8 +1528,6 @@ function openSfx(){
   $('rx').hidden=true;
   const c=$('chatpop');if(c&&!c.hidden)toggleChat();
   buildSfxGrid();
-  const v=$('sfxvol');if(v)v.value=sfxVol;
-  const vi=$('sfxvi');if(vi)vi.textContent=sfxVol===0?'🔇':sfxVol<50?'🔉':'🔊';
   s.hidden=false;snd('pop');
 }
 function closeSfx(){const s=$('sfxsheet');if(s){if(!s.hidden)snd('close');s.hidden=true}}
@@ -1515,6 +1548,13 @@ function setSfxVol(v){
   try{localStorage.setItem('sfxvol',sfxVol)}catch(e){}
   if(sfxAudio)sfxAudio.volume=sfxVol/100;
   const vi=$('sfxvi');if(vi)vi.textContent=sfxVol===0?'🔇':sfxVol<50?'🔉':'🔊';
+  const vi2=$('sfxvi2');if(vi2)vi2.textContent=sfxVol===0?'🔇':sfxVol<50?'🔉':'🔊';
+}
+function setUiVol(v){
+  uiVol=Math.max(0,Math.min(100,+v|0));
+  try{localStorage.setItem('uivol',uiVol)}catch(e){}
+  if(uiGain)uiGain.gain.value=uiVol/100;
+  const vi=$('uivi');if(vi)vi.textContent=uiVol===0?'🔇':uiVol<50?'🔉':'🔊';
 }
 function playSfx(i){
   const e=SFX[i];if(!e)return;
