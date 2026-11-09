@@ -122,6 +122,12 @@ summary{cursor:pointer;color:var(--tx);font-weight:600}
 .pk .card{margin:0 auto 6px;transition:transform .12s}
 .pk.sel .card{outline:3px solid var(--ac);transform:translateY(-8px)}
 .pk.sel{color:var(--tx);font-weight:700}
+.pk.pks{width:66px;padding:9px 0 7px;border:1px solid var(--ln);border-radius:14px;background:var(--sf)}
+.pick .pk.pks{flex:1 1 0;width:auto;min-width:0;max-width:78px}
+.pk.pks.sel{border-color:var(--ac);box-shadow:0 0 0 2px var(--ac);color:var(--tx)}
+.sui{display:block;font-size:clamp(24px,8vw,32px);line-height:1.05}
+.sui.r{color:#d2312a}
+.pk.pks small{display:block;font-size:10px;letter-spacing:.2px;margin-top:3px}
 .mp{max-height:92vh;overflow:auto}
 .opt{text-align:left;border:2px solid var(--ln);border-radius:14px;padding:10px 12px;margin-top:8px;cursor:pointer;background:var(--sf)}
 .opt.sel{border-color:var(--ac)}
@@ -130,6 +136,10 @@ summary{cursor:pointer;color:var(--tx);font-weight:600}
 #bar{flex-wrap:wrap}
 .rb{display:flex;gap:5px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end;min-width:0}
 .rb .sm{padding:0 10px}
+#bar .rb .sm.ico{width:32px;min-height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:9px;color:var(--mut);border:1px solid var(--ln);background:transparent;transition:background .15s,color .15s,border-color .15s}
+#bar .rb .sm.ico:hover{color:#e05252;border-color:#e0525266;background:#e0525214}
+#bar .rb .sm.ico:active{transform:scale(.94)}
+#bar .rb .sm.ico svg{display:block}
 @media (max-width:400px){.rb .sm{padding:0 8px;font-size:12px}}
 #hand .sel2{transform:translateY(-26px) scale(1.06);z-index:3;box-shadow:0 12px 18px #000a,0 0 0 3px var(--ac)}
 .qb{width:100%;display:flex;gap:6px;justify-content:center}
@@ -157,12 +167,13 @@ summary{cursor:pointer;color:var(--tx);font-weight:600}
 .sfxh b{flex:1;min-width:0;font-size:16px;text-align:left}
 .sfxvol{display:flex;align-items:center;gap:6px;font-size:14px}
 .sfxvol input{width:min(88px,24vw);min-width:56px;accent-color:var(--ac)}
-.sndvol{display:flex;align-items:center;gap:6px;font-size:14px;margin-top:4px;padding-top:4px;border-top:1px solid var(--ln)}
-.sndvol input{width:min(100px,30vw);min-width:60px;accent-color:var(--ac)}
+.sndvol{display:flex;align-items:center;gap:8px;font-size:13px;margin-top:2px;padding-top:6px;border-top:1px solid var(--ln)}
+.sndvol span{flex:none;font-size:15px}
+.sndvol input{flex:1;min-width:0;width:auto;height:30px;padding:0;border:none;background:transparent;accent-color:var(--ac);cursor:pointer}
 .sfxg{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px;align-content:start;padding-bottom:6px}
-.sfxi{position:relative;border:2px solid var(--ln);border-radius:14px;overflow:hidden;background:var(--sf);padding:0;cursor:pointer;color:inherit;display:flex;flex-direction:column;font:inherit}
-.sfxi img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#0004}
-.sfxi span{font-size:11px;line-height:1.25;padding:5px 6px;height:2.6em;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-align:left}
+.sfxi{position:relative;display:block;box-sizing:border-box;width:100%;height:0;padding:0 0 calc(100% - 4px);border:2px solid var(--ln);border-radius:14px;overflow:hidden;background:var(--sf);cursor:pointer;color:inherit;font:inherit}
+.sfxi img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;background:#0004}
+.sfxi span{position:absolute;left:0;right:0;bottom:0;font-size:11px;line-height:1.25;padding:14px 6px 5px;height:auto;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-align:left;background:linear-gradient(transparent,rgba(0,0,0,.85));text-shadow:0 1px 2px #000}
 .sfxi .pl{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:#000a;color:#fff;font-size:11px;font-style:normal;display:flex;align-items:center;justify-content:center;gap:2px}
 .sfxi .pl u{display:none;width:3px;background:#fff;border-radius:2px;height:6px}
 .sfxi.on{border-color:var(--ac);box-shadow:0 0 0 2px var(--ac)}
@@ -188,6 +199,13 @@ summary{cursor:pointer;color:var(--tx);font-weight:600}
 .dots i{width:5px;height:5px;border-radius:50%;background:#14231f;animation:bl 1s infinite}
 .dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
 @keyframes bl{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+/* meme-sound playing badge on the speaker's avatar */
+.spk{position:absolute;top:-8px;right:-8px;z-index:3;display:flex;gap:2px;align-items:flex-end;height:14px;padding:2px 5px;border-radius:999px;background:#14231fdd;box-shadow:0 1px 4px #0006}
+.spk i{width:3px;height:4px;border-radius:2px;background:#ffd15c;animation:eqs .7s infinite ease-in-out}
+.spk i:nth-child(2){animation-delay:.15s}
+.spk i:nth-child(3){animation-delay:.3s}
+@keyframes eqs{0%,100%{height:4px}50%{height:12px}}
+@media (prefers-reduced-motion:reduce){.spk i{animation:none;height:8px}}
 .bub{position:absolute;z-index:8;background:#fff;color:#111;border-radius:18px;padding:4px 10px;font-size:clamp(24px,7vw,34px);line-height:1.1;box-shadow:0 2px 8px #0006;animation:bp 2.4s ease-out forwards;pointer-events:none;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui,sans-serif}
 .bub.chat{font-size:14px;line-height:1.35;max-width:190px;white-space:normal;word-break:break-word;font-family:inherit;text-align:left;padding:8px 12px;border-radius:14px;animation-duration:4s}
 .b0{left:calc(50% + 34px);bottom:12px}.b1{right:62px;top:40%}.b2{left:calc(50% + 34px);top:14px}.b3{left:62px;top:40%}
@@ -199,6 +217,11 @@ summary{cursor:pointer;color:var(--tx);font-weight:600}
 .late{animation:fin .35s 1.2s both}
 @keyframes pop{from{transform:scale(.9);opacity:0}}@keyframes fin{from{opacity:0}}
 @media (prefers-reduced-motion:reduce){.mp,.mb.pop .mp,.late{animation:none}}
+/* no-blur modal for single hand/double popups */
+.mb.no-blur{background:rgba(0,0,0,.3)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+/* lift bid/trump popups so the hand stays visible */
+.mb.bidup{align-items:flex-start;padding-top:clamp(8px,5vh,56px)}
+.mb.bidup .mp{max-height:calc(100vh - clamp(8px,5vh,56px) - 16px);max-height:calc(100dvh - clamp(8px,5vh,56px) - 16px)}
 /* trump reveal animation */
 #rv{position:absolute;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;pointer-events:none;border-radius:26px;background:radial-gradient(circle at 50% 50%,#000a 0%,#0007 70%);animation:rvbg 2.5s ease-in-out forwards}
 .rvb{display:flex;flex-direction:column;align-items:center;gap:14px;perspective:700px;animation:rvout 2.5s ease-in forwards}
@@ -401,7 +424,7 @@ button.gold,.chip.x{background:var(--gold);color:#2a1d00;border-color:#c8953a;bo
 @media (orientation:landscape) and (max-height:520px){:root{--sr:80px}}
 .s1{left:66%}.s3{left:34%}
 #s1 .sn,#s3 .sn{max-width:60px}
-#sndpop{position:absolute;bottom:calc(66px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);z-index:15;width:min(260px,calc(100% - 28px));background:var(--sf);border:1px solid #d4a64a66;border-radius:22px;box-shadow:0 12px 30px #0008;padding:8px;display:flex;flex-direction:column;gap:6px}
+#sndpop{position:absolute;bottom:calc(66px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);z-index:15;width:min(280px,calc(100% - 28px));background:var(--sf);border:1px solid #d4a64a66;border-radius:22px;box-shadow:0 12px 30px #0008;padding:10px;display:flex;flex-direction:column;gap:6px}
 #sndpop[hidden]{display:none}
 #cc #tc .tcs{margin:2px auto}
 #cc #tc .tcs .card{position:relative;left:auto;top:auto;transform:none;--cw:36px}
@@ -411,14 +434,14 @@ button.gold,.chip.x{background:var(--gold);color:#2a1d00;border-color:#c8953a;bo
 <div id="app">
 <div id="lobby"></div>
 <div id="game" hidden>
-<div id="bar"><div id="chips"></div><div class="rb"><button class="sm" onclick="openLast()">Last trick</button><button class="sm" onclick="openSheet(true)" aria-label="Open scores">Scores</button><button class="sm" onclick="confirmLeave()" aria-label="Leave game">Leave</button><button class="sm" id="cancelBtn" onclick="confirmCancel()" aria-label="Cancel game" hidden>Cancel</button></div></div>
+<div id="bar"><div id="chips"></div><div class="rb"><button class="sm" id="lastBtn" onclick="openLast()">Last trick</button><button class="sm" onclick="openSheet(true)" aria-label="Open scores">Scores</button><button class="sm ico" onclick="confirmLeave()" aria-label="Leave game" title="Leave game"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button><button class="sm" id="cancelBtn" onclick="confirmCancel()" aria-label="Cancel game" hidden>Cancel</button></div></div>
 <div id="rx" hidden onclick="if(event.target===this)toggleRx()"><div class="sfxp"><div class="sfxh"><b>Reactions</b><button class="sm" onclick="toggleRx()" aria-label="Close reactions">✕</button></div><div class="rxg" id="rxg"></div></div></div>
 <div id="strip"></div>
 <div id="table">
 <div class="seat" id="s2"></div><div class="seat" id="s1"></div><div class="seat" id="s3"></div><div class="seat" id="s0"></div>
 <div id="center"><div id="cc"></div><div id="fly"></div></div>
 </div>
-<div id="dock"><div id="msg" aria-live="polite"></div><div id="hint"></div><div id="act"></div><div id="hand"></div><div id="tools"><button class="ib" id="snb" onclick="toggleSndMenu()" aria-label="Sound on or off"></button><button class="ib" onclick="toggleRx()" aria-label="Reactions"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.2c1 1.4 2.2 2 3.5 2s2.5-.6 3.5-2"/><path d="M9 9.5h.01M15 9.5h.01"/></svg></button><button class="ib" id="sfxBtn" onclick="toggleSfx()" aria-label="Sound board"><svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg></button><button class="ib" onclick="toggleChat()" aria-label="Chat"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4A8 8 0 1 1 20 12z"/></svg></button></div></div>
+<div id="dock"><div id="msg" aria-live="polite"></div><div id="hint"></div><div id="act"></div><div id="hand"></div><div id="tools"><button class="ib" id="snb" onclick="toggleSndMenu()" aria-label="Sound on or off"></button><button class="ib" id="rxBtn" onclick="toggleRx()" aria-label="Reactions"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.2c1 1.4 2.2 2 3.5 2s2.5-.6 3.5-2"/><path d="M9 9.5h.01M15 9.5h.01"/></svg></button><button class="ib" id="sfxBtn" onclick="toggleSfx()" aria-label="Sound board"><svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg></button><button class="ib" id="chatBtn" onclick="toggleChat()" aria-label="Chat"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4A8 8 0 1 1 20 12z"/></svg></button></div></div>
 </div>
 <div id="chatpop" hidden>
 <div id="qchat">
@@ -450,7 +473,7 @@ button.gold,.chip.x{background:var(--gold);color:#2a1d00;border-color:#c8953a;bo
 <details><summary>How to play</summary>
 <p>Partners sit opposite. Card order in each suit: J, 9, A, 10, K, Q, 8, 7. Points: J 3, 9 2, A 1, 10 1. A deal has 28 points.</p>
 <p>Bid 16–28 on your first 4 cards. Then the opponents may double the stakes (×2) and the bidder may redouble (×4). Single Hand: after trump is set and before the first lead, any player may declare it. They play alone, their partner sits out, and they must win all 8 tricks: +3 game points if they do, −3 if they lose any trick. The bidding team’s pips move one step per game point: 1, 2 or 4 steps at stakes ×1, ×2 or ×4.</p>
-<p>The bidder picks one card to set the trump suit. That card stays in the bidder’s hand and can be played normally, and trump stays hidden. Two other choices: Joker means no trump this deal. 7th card means the suit of the bidder’s 7th card is trump; the bidder sees it but cannot play it until someone asks for trump or it is the last trick. Everyone then gets 4 more cards.</p>
+<p>The bidder picks a suit to set as trump — it does not have to be a card in their hand — and trump stays hidden. Two other choices: Joker means no trump this deal. 7th card means the suit of the bidder’s 7th card is trump; the bidder sees it but cannot play it until someone asks for trump or it is the last trick. Everyone then gets 4 more cards.</p>
 <p>Follow the lead suit. If you cannot, you may ask for trump before you play. Once you play your card you cannot ask on that turn. After trump is asked, you must play a trump card if you hold one. The highest trump wins, otherwise the highest card of the lead suit. If trump is revealed during a trick, every trump-suit card in that trick counts as trump, even one played before the reveal.</p>
 <p>Royals: K and Q of trump, once your team has won a trick. The bid drops by 4 for the bidding team, or rises by 4 if the opponents declare. Match scoring uses six pips per team. A made bid turns a black pip off, or else an off pip red. A failed bid turns a red pip off, or else an off pip black. Only the bidding team’s pips change. Six red pips (+6) win the match; six black pips (−6) lose it.</p>
 <p>Online: all cards are stored in the shared table data, so use it for friendly games.</p></details>
@@ -462,9 +485,10 @@ const cleanN=n=>String(n||'Player').replace(/[<>&"'`\\]/g,'').trim().slice(0,16)
 var syncErr=0;
 const SU=['♠','♥','♦','♣'],RK=['J','9','A','10','K','Q','8','7'],PT={J:3,9:2,A:1,10:1};
 const tm=s=>s%2,pt=c=>PT[c.r]||0,red=c=>c.s===1||c.s===2,cid=c=>c.s+c.r;
-let warnSeen=-1,G=null,solo=false,isHost=false,uid=null,uname='',me=0,myTeam=-1,db=null,tdoc=null,code='',seats=[null,null,null,null],lastN={},baseline=true,tmr=0,hb=16,seenQ=-1,seenT=new Set(),wr=false,dirty=false,lmsg='',wasMine=false,selT=null,dismissId=-1,ml=false,myAv=loadAv(),selP=null,seenR=-1,lastId=-1,overId=-1,lastMsg='',lastRx=0,snOn=loadSn(),seenS=-1,sfxVol=loadSfxVol(),uiVol=loadUiVol(),sfxAudio=null,lastSfxSend=0,sfxBuilt=false,ws=null,wsOnline=false;
+let warnSeen=-1,G=null,solo=false,isHost=false,uid=null,uname='',me=0,myTeam=-1,db=null,tdoc=null,code='',seats=[null,null,null,null],lastN={},baseline=true,tmr=0,hb=16,seenQ=-1,seenT=new Set(),wr=false,dirty=false,lmsg='',wasMine=false,selT=null,dismissId=-1,ml=false,myAv=loadAv(),selP=null,seenR=-1,lastId=-1,overId=-1,lastMsg='',lastRx=0,snOn=loadSn(),seenS=-1,sfxVol=loadSfxVol(),uiVol=loadUiVol(),lastSfxSend=0,sfxBuilt=false,ws=null,wsOnline=false;
 let lobbyMode=null,roomToken=null,lastSyncAt=0,syncLoop=0;
 let lastModalHTML='',modalPopTimer=0;
+let sfxSeat=-1,sfxClrT=0;
 let dlgActions=[],dlgQueue=[],dlgActive=false,dlgActiveSeat=null;
 let autoT=0,autoSig='';
 let bidShown='',bidId=-1,bidEl=null;
@@ -720,7 +744,7 @@ function apply(p,a){
   if(!G||p<0)return;
   const t=a.t,h=G.hands[p];
   if(t==='react'){if(RXS.includes(a.e)){G.react={q:++G.rq,p,e:a.e};commit()}return}
-if(t==='sfx'){const i=+a.i;if(Number.isInteger(i)&&i>=0&&i<SFX.length&&(!G.sfx||Date.now()-(G.sfx.at||0)>=1200)){G.sfx={q:++G.sq,p,i,at:Date.now()};commit()}return}
+if(t==='sfx'){const f=(typeof a.f==='string'?a.f.split('/').pop():'');let i=f?SFX.findIndex(e=>e.f.split('/').pop()===f):-1;if(i<0)i=+a.i;if(((Number.isInteger(i)&&i>=0&&i<SFX.length)||!!f)&&(!G.sfx||Date.now()-(G.sfx.at||0)>=1200)){G.sfx={q:++G.sq,p,i,f,at:Date.now()};commit()}return}
   if(t==='undo'){if(!G.hist.length)return;undoHand(p);commit();return}
   if(t==='bid'&&G.phase==='bid'&&G.turn===p){const b=+a.b;if(b===0||(b>=Math.max(16,G.bid+1)&&b<=28))doBid(p,b);else return}
   else if(t==='stay'&&G.phase==='bid'&&G.turn===p)doStay(p);
@@ -729,6 +753,7 @@ if(t==='sfx'){const i=+a.i;if(Number.isInteger(i)&&i>=0&&i<SFX.length&&(!G.sfx||
   else if(t==='sh'&&G.phase==='sh'&&G.turn===p){if(a.d)declareSh(p);else{shNext();botSh()}}
   else if(t==='trump'&&G.phase==='trump'&&G.bidder===p){
     if(a.m==='nt'||a.m==='7th')setTrumpMode(p,a.m);
+    else if(a.m==='suit'){const s=+a.s;if(!(s>=0&&s<4))return;setTrump(p,{s})}
     else{const c=h.find(x=>cid(x)===a.c);if(!c)return;setTrump(p,c)}
   }
   else if(t==='no7'&&G.phase==='no7'&&G.bidder===p){
@@ -1321,7 +1346,7 @@ function undoClick(){
 }
 function selTr(k){selT=k;render()}
 function confirmW(){selT=null;act({t:'trump',m:'7th',w:1})}
-function confirmT(){if(!selT)return;const k=selT;selT=null;act(k==='NT'?{t:'trump',m:'nt'}:k==='S7'?{t:'trump',m:'7th'}:{t:'trump',c:k})}
+function confirmT(){if(!selT)return;const k=selT;selT=null;act(k==='NT'?{t:'trump',m:'nt'}:k==='S7'?{t:'trump',m:'7th'}:k[0]==='U'&&k.length===2?{t:'trump',m:'suit',s:+k.slice(1)}:{t:'trump',c:k})}
 function closeOver(){dismissId=G.id;render()}
 function closeDev(){devSeen=G.id+'-'+G.dev.n;render()}
 function devAct(d){devSeen=G.id+'-'+G.dev.n;act({t:'rdbl',d});if(!solo&&!isHost)render()}
@@ -1356,8 +1381,8 @@ function modalH(g,V,myTr){
   if(g.warn>=0&&warnSeen!==g.id&&g.phase!=='over')return '<div class="mp"><h2>No trump-suit point card</h2><p><b>'+(g.warn===me?'You have':g.names[g.warn]+' has')+'</b> no point card (J, 9, A or 10) of the trump suit among the other 7 cards of the 7th-card trump, but '+(g.warn===me?'chose':'wants')+' to continue.</p><button class="pri" style="width:100%;margin-top:10px" onclick="closeWarn()">OK</button></div>';
   if(myTr){
     const sc=g.hands[me].find(c=>cid(c)===selT),ok=!!selT,w7=false;
-    const cs=g.hands[me].map(c=>'<div class="pk'+(selT===cid(c)?' sel':'')+'" onclick="selTr(\''+cid(c)+'\')">'+cardH(c)+SUN[c.s]+'</div>').join('');
-    return '<div class="mp"><h2>Choose trump</h2><p class="note">Pick a card to set the trump suit. The card stays in your hand and you can play it normally. Or choose an option below.</p><div class="pick">'+cs+'</div><div class="pick sp"><div class="pk'+(selT==='S7'?' sel':'')+'" onclick="selTr(\'S7\')"><div class="card bk7"><b>7</b></div>7th card</div><div class="pk'+(selT==='NT'?' sel':'')+'" onclick="selTr(\'NT\')"><div class="card jk"><i>JOKER</i><svg viewBox="0 0 48 68" aria-hidden="true"><path d="M9 34C2 20 3 11 7 7c6 6 13 14 16 26z" fill="#d2312a"/><path d="M39 34c7-14 6-23 2-27-6 6-13 14-16 26z" fill="#1f3a78"/><path d="M16 33C18 18 21 9 24 4c3 5 6 14 8 29z" fill="#e0a526"/><circle cx="7" cy="7" r="3.2" fill="#e0a526"/><circle cx="41" cy="7" r="3.2" fill="#e0a526"/><circle cx="24" cy="4" r="3.2" fill="#d2312a"/><rect x="9" y="32" width="30" height="5" rx="2.5" fill="#14231f"/><circle cx="24" cy="47" r="10.5" fill="#fff3dc" stroke="#14231f" stroke-width=".9"/><circle cx="20" cy="45" r="1.4" fill="#14231f"/><circle cx="28" cy="45" r="1.4" fill="#14231f"/><circle cx="17.5" cy="50" r="1.8" fill="#f2a5a0"/><circle cx="30.5" cy="50" r="1.8" fill="#f2a5a0"/><path d="M19 51q5 4.5 10 0" fill="none" stroke="#14231f" stroke-width="1.1" stroke-linecap="round"/><path d="M7 66l5-9 4 6 4-6 4 6 4-6 4 6 4-6 5 9z" fill="#d2312a" stroke="#14231f" stroke-width=".6"/></svg></div>Joker</div></div><p class="note">'+(selT==='S7'?'Your 7th card sets trump. You will see it, but you cannot play it until someone asks for trump or it is the last trick.':selT==='NT'?'Joker: no suit is trump this deal.':'Pick one of your cards, the 7th card, or the Joker.')+'</p>'+(w7?'<div class="opt sel" style="cursor:default"><b>No trump-suit point card</b><small>None of your cards is a J, 9, A or 10 of the trump suit. Cancel this deal and redeal, or continue with the 7th card as trump. If you continue, everyone is told.</small></div><button class="pri" style="width:100%;margin-top:12px" onclick="act({t:\'no7\',c:1})">Cancel this deal</button><button style="width:100%;margin-top:8px" onclick="confirmW()">Continue anyway</button>':'')+'<button class="pri" style="width:100%;margin-top:12px"'+(ok?'':' disabled')+(w7?' hidden':'')+' onclick="confirmT()">'+(selT==='NT'?'Play with no trump':selT==='S7'?'Use my 7th card as trump':sc?'Set '+SU[sc.s]+' as trump':'Select an option')+'</button></div>';
+    const su=SU.map((s,i)=>`<div class="pk${selT==='U'+i?' sel':''}" onclick="selTr('U${i}')"><div class="card${i===1||i===2?' r':''}"><div class="cn"><i>${s}</i></div><div class="pp">${s}</div><div class="cn bt"><i>${s}</i></div></div>${SUN[i]}</div>`).join('');
+    return '<div class="mp"><h2>Choose trump</h2><p class="note">Choose the trump suit — it does not have to be in your hand — or pick an option below.</p><div class="pick">'+su+'</div><div class="pick sp"><div class="pk'+(selT==='S7'?' sel':'')+'" onclick="selTr(\'S7\')"><div class="card bk7"><b>7</b></div>7th card</div><div class="pk'+(selT==='NT'?' sel':'')+'" onclick="selTr(\'NT\')"><div class="card jk"><i>JOKER</i><svg viewBox="0 0 48 68" aria-hidden="true"><path d="M9 34C2 20 3 11 7 7c6 6 13 14 16 26z" fill="#d2312a"/><path d="M39 34c7-14 6-23 2-27-6 6-13 14-16 26z" fill="#1f3a78"/><path d="M16 33C18 18 21 9 24 4c3 5 6 14 8 29z" fill="#e0a526"/><circle cx="7" cy="7" r="3.2" fill="#e0a526"/><circle cx="41" cy="7" r="3.2" fill="#e0a526"/><circle cx="24" cy="4" r="3.2" fill="#d2312a"/><rect x="9" y="32" width="30" height="5" rx="2.5" fill="#14231f"/><circle cx="24" cy="47" r="10.5" fill="#fff3dc" stroke="#14231f" stroke-width=".9"/><circle cx="20" cy="45" r="1.4" fill="#14231f"/><circle cx="28" cy="45" r="1.4" fill="#14231f"/><circle cx="17.5" cy="50" r="1.8" fill="#f2a5a0"/><circle cx="30.5" cy="50" r="1.8" fill="#f2a5a0"/><path d="M19 51q5 4.5 10 0" fill="none" stroke="#14231f" stroke-width="1.1" stroke-linecap="round"/><path d="M7 66l5-9 4 6 4-6 4 6 4-6 4 6 4-6 5 9z" fill="#d2312a" stroke="#14231f" stroke-width=".6"/></svg></div>Joker</div></div><p class="note">'+(selT==='S7'?'Your 7th card sets trump. You will see it, but you cannot play it until someone asks for trump or it is the last trick.':selT==='NT'?'Joker: no suit is trump this deal.':'Pick a suit, the 7th card, or the Joker.')+'</p>'+(w7?'<div class="opt sel" style="cursor:default"><b>No trump-suit point card</b><small>None of your cards is a J, 9, A or 10 of the trump suit. Cancel this deal and redeal, or continue with the 7th card as trump. If you continue, everyone is told.</small></div><button class="pri" style="width:100%;margin-top:12px" onclick="act({t:\'no7\',c:1})">Cancel this deal</button><button style="width:100%;margin-top:8px" onclick="confirmW()">Continue anyway</button>':'')+'<button class="pri" style="width:100%;margin-top:12px"'+(ok?'':' disabled')+(w7?' hidden':'')+' onclick="confirmT()">'+(selT==='NT'?'Play with no trump':selT==='S7'?'Use my 7th card as trump':selT&&selT[0]==='U'&&selT.length===2?'Set '+SU[+selT[1]]+' as trump':sc?'Set '+SU[sc.s]+' as trump':'Select an option')+'</button></div>';
   }
   if(g.phase==='over'&&dismissId!==g.id){
     ml=true;
@@ -1415,14 +1440,15 @@ async function setAv(i){
   const v=$('code')&&$('code').value;renderLobby();if(v&&$('code'))$('code').value=v;
 }
 /* ===== sound effects (synthesised in the browser, no audio files) ===== */
-const SFX=[{"f":"sound effect/sounds/aayein-meme.mp3","i":"sound effect/image/aayein-meme.jpeg","n":"Aayein meme"},{"f":"sound effect/sounds/abe-sale.mp3","i":"sound effect/image/abe-sale.jpg","n":"Abe sale"},{"f":"sound effect/sounds/abhi-maza-ayagga (mp3cut.net).mp3","i":"sound effect/image/abhi-maza-ayagga (mp3cut.net).jpeg","n":"Abhi maza ayagga"},{"f":"sound effect/sounds/amar-vul-hoyeche-khoma-kore-den (mp3cut.net).mp3","i":"sound effect/image/amar-vul-hoyeche-khoma-kore-den (mp3cut.net).jpeg","n":"Amar vul hoyeche khoma kore den"},{"f":"sound effect/sounds/anime-ahh.mp3","i":"sound effect/image/anime-ahh.jpg","n":"Anime ahh"},{"f":"sound effect/sounds/anime-girl-voice.mp3","i":"sound effect/image/anime-girl-voice.jpg","n":"Anime girl voice"},{"f":"sound effect/sounds/are-baap-re-yaad-aya.mp3","i":"sound effect/image/are-baap-re-yaad-aya.jpeg","n":"Are baap re yaad aya"},{"f":"sound effect/sounds/ashraful_rs0EBpS (mp3cut.net).mp3","i":"sound effect/image/ashraful_rs0EBpS (mp3cut.net).png","n":"Ashraful rs0EBpS"},{"f":"sound effect/sounds/ei-bosun-toh (mp3cut.net).mp3","i":"sound effect/image/ei-bosun-toh (mp3cut.net).jpeg","n":"Ei bosun toh"},{"f":"sound effect/sounds/ei-tomra-kemon-aso-helicopter-milon (mp3cut.net).mp3","i":"sound effect/image/ei-tomra-kemon-aso-helicopter-milon (mp3cut.net).jpeg","n":"Ei tomra kemon aso helicopter milon"},{"f":"sound effect/sounds/ekbaar-dhokaa-khaaichi (mp3cut.net).mp3","i":"sound effect/image/ekbaar-dhokaa-khaaichi (mp3cut.net).jpeg","n":"Ekbaar dhokaa khaaichi"},{"f":"sound effect/sounds/emotional-damage-meme (mp3cut.net).mp3","i":"sound effect/image/emotional-damage-meme (mp3cut.net).png","n":"Emotional damage meme"},{"f":"sound effect/sounds/griberaa-bhaalo-aacho.mp3","i":"sound effect/image/griberaa-bhaalo-aacho.jpeg","n":"Griberaa bhaalo aacho"},{"f":"sound effect/sounds/gx-panel-bangladesh (mp3cut.net).mp3","i":"sound effect/image/gx-panel-bangladesh (mp3cut.net).jpeg","n":"Gx panel bangladesh"},{"f":"sound effect/sounds/maaunttaan-ddio-bhyyer-golaa-maari.mp3","i":"sound effect/image/maaunttaan-ddio-bhyyer-golaa-maari.jpg","n":"Maaunttaan ddio bhyyer golaa maari"},{"f":"sound effect/sounds/my-name-is-shamol (mp3cut.net) (1).mp3","i":"sound effect/image/my-name-is-shamol (mp3cut.net) (1).jpg","n":"My name is shamol"},{"f":"sound effect/sounds/nahi-nahi-saluke-yaha-kuchh-to-gadbad-hai.mp3","i":"sound effect/image/nahi-nahi-saluke-yaha-kuchh-to-gadbad-hai.jpeg","n":"Nahi nahi saluke yaha kuchh to gadbad hai"},{"f":"sound effect/sounds/pure-debo-dutto-daanaa.mp3","i":"sound effect/image/pura debo dutto daanaa meme.png","n":"Pure debo dutto daanaa"},{"f":"sound effect/sounds/rag-korla_xg1tnet.mp3","i":"sound effect/image/rag-korla_xg1tnet.jpeg","n":"Rag korla xg1tnet"},{"f":"sound effect/sounds/see you not for mine.mp3","i":"sound effect/image/see you not for  mine.jpeg","n":"See you not for mine"},{"f":"sound effect/sounds/tmp_z5b93np (mp3cut.net).mp3","i":"sound effect/image/tmp_z5b93np (mp3cut.net).jpeg","n":"Tmp z5b93np"}];
+const SFX=[{"f":"sound effect/sounds/aayein-meme.mp3","i":"sound effect/image/aayein-meme.jpeg","n":"Aayein meme"},{"f":"sound effect/sounds/abe-sale.mp3","i":"sound effect/image/abe-sale.jpg","n":"Abe sale"},{"f":"sound effect/sounds/abhi-maza-ayagga (mp3cut.net).mp3","i":"sound effect/image/abhi-maza-ayagga (mp3cut.net).jpeg","n":"Abhi maza ayagga"},{"f":"sound effect/sounds/amar-vul-hoyeche-khoma-kore-den (mp3cut.net).mp3","i":"sound effect/image/amar-vul-hoyeche-khoma-kore-den (mp3cut.net).jpeg","n":"Amar vul hoyeche khoma kore den"},{"f":"sound effect/sounds/anime-ahh.mp3","i":"sound effect/image/anime-ahh.jpg","n":"Anime ahh"},{"f":"sound effect/sounds/anime-girl-voice.mp3","i":"sound effect/image/anime-girl-voice.jpg","n":"Anime girl voice"},{"f":"sound effect/sounds/are-baap-re-yaad-aya.mp3","i":"sound effect/image/are-baap-re-yaad-aya.jpeg","n":"Are baap re yaad aya"},{"f":"sound effect/sounds/ashraful_rs0EBpS (mp3cut.net).mp3","i":"sound effect/image/ashraful_rs0EBpS (mp3cut.net).png","n":"Ashraful rs0EBpS"},{"f":"sound effect/sounds/ei-bosun-toh (mp3cut.net).mp3","i":"sound effect/image/ei-bosun-toh (mp3cut.net).jpeg","n":"Ei bosun toh"},{"f":"sound effect/sounds/ei-tomra-kemon-aso-helicopter-milon (mp3cut.net).mp3","i":"sound effect/image/ei-tomra-kemon-aso-helicopter-milon (mp3cut.net).jpeg","n":"Ei tomra kemon aso helicopter milon"},{"f":"sound effect/sounds/ekbaar-dhokaa-khaaichi (mp3cut.net).mp3","i":"sound effect/image/ekbaar-dhokaa-khaaichi (mp3cut.net).jpeg","n":"Ekbaar dhokaa khaaichi"},{"f":"sound effect/sounds/emotional-damage-meme (mp3cut.net).mp3","i":"sound effect/image/emotional-damage-meme (mp3cut.net).png","n":"Emotional damage meme"},{"f":"sound effect/sounds/griberaa-bhaalo-aacho.mp3","i":"sound effect/image/griberaa-bhaalo-aacho.jpeg","n":"Griberaa bhaalo aacho"},{"f":"sound effect/sounds/gx-panel-bangladesh (mp3cut.net).mp3","i":"sound effect/image/gx-panel-bangladesh (mp3cut.net).jpeg","n":"Gx panel bangladesh"},{"f":"sound effect/sounds/maaunttaan-ddio-bhyyer-golaa-maari.mp3","i":"sound effect/image/maaunttaan-ddio-bhyyer-golaa-maari.jpg","n":"Maaunttaan ddio bhyyer golaa maari"},{"f":"sound effect/sounds/my-name-is-shamol (mp3cut.net) (1).mp3","i":"sound effect/image/my-name-is-shamol (mp3cut.net) (1).jpg","n":"My name is shamol"},{"f":"sound effect/sounds/nahi-nahi-saluke-yaha-kuchh-to-gadbad-hai.mp3","i":"sound effect/image/nahi-nahi-saluke-yaha-kuchh-to-gadbad-hai.jpeg","n":"Nahi nahi saluke yaha kuchh to gadbad hai"},{"f":"sound effect/sounds/pure-debo-dutto-daanaa.mp3","i":"sound effect/image/pure-debo-dutto-daanaa.png","n":"Pure debo dutto daanaa"},{"f":"sound effect/sounds/rag-korla_xg1tnet.mp3","i":"sound effect/image/rag-korla_xg1tnet.jpeg","n":"Rag korla xg1tnet"},{"f":"sound effect/sounds/see you not for mine.mp3","i":"sound effect/image/see you not for mine.jpeg","n":"See you not for mine"},{"f":"sound effect/sounds/tmp_z5b93np (mp3cut.net).mp3","i":"sound effect/image/tmp_z5b93np (mp3cut.net).jpeg","n":"Tmp z5b93np"}];
 function loadSn(){try{return localStorage.getItem('snd29')!=='0'}catch(e){return true}}
 function loadSfxVol(){try{const v=+localStorage.getItem('sfxvol');return Number.isFinite(v)&&v>=0&&v<=100?v:80}catch(e){return 80}}
 function loadUiVol(){try{const v=+localStorage.getItem('uivol');return Number.isFinite(v)&&v>=0&&v<=100?v:80}catch(e){return 80}}
 let AC=null;
 function actx(){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC}catch(e){return null}}
-function actx(){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC}catch(e){return null}}
 let uiGain=null;
+sfxAudio=new Audio();
+sfxAudio.preload='auto';
 function getUiGain(c){if(!uiGain){uiGain=c.createGain();uiGain.gain.value=uiVol/100;uiGain.connect(c.destination)}return uiGain}
 
 function tone(f,d,ty,v,at,dest){const c=actx();if(!c)return;const n=c.currentTime+(at||0),o=c.createOscillator(),g=c.createGain();o.type=ty||'sine';o.frequency.value=f;g.gain.setValueAtTime(v||.1,n);g.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(g);g.connect(dest||c.destination);o.start(n);o.stop(n+d)}
@@ -1436,23 +1462,22 @@ const SND={play:(dest)=>{swish(.07,.1,0,2000,dest);soft(160,.1,.07,.005,'sine',d
 function snd(k){if(snOn&&SND[k])try{SND[k]()}catch(e){}}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button');if(b&&!b.closest('.sfxi'))snd('tap')},true);
 
-// Close popups when clicking outside
+// Close popups when clicking outside — capture phase: runs BEFORE the button's
+// own onclick, so a popup opened by that click is not instantly closed, and the
+// check still sees the original click target even if the button repaints its icon.
 document.addEventListener('click',e=>{
   const popups=['sndpop','sfxsheet','chatpop','rx','lt'];
   popups.forEach(id=>{
     const el=$(id);
     if(el&&!el.hidden&&!el.contains(e.target)){
-      const triggers={'sndpop':'snb','sfxsheet':'sfxBtn','chatpop':null,'rx':null,'lt':null};
+      const triggers={'sndpop':'snb','sfxsheet':'sfxBtn','chatpop':'chatBtn','rx':'rxBtn','lt':null};
       const triggerId=triggers[id];
       if(triggerId&&$(triggerId)&&$(triggerId).contains(e.target)) return;
       if(id==='sfxsheet') closeSfx();
-      else if(id==='sndpop') el.hidden=true;
-      else if(id==='chatpop') el.hidden=true;
-      else if(id==='rx') el.hidden=true;
-      else if(id==='lt') el.hidden=true;
+      else el.hidden=true;
     }
   });
-});
+},true);
 function loadMeme(){try{return localStorage.getItem('meme29')!=='0'}catch(e){return true}}
 let memeOn=loadMeme();
 function sndIc(){return (snOn||memeOn)
@@ -1529,6 +1554,7 @@ function openSfx(){
   const c=$('chatpop');if(c&&!c.hidden)toggleChat();
   buildSfxGrid();
   s.hidden=false;snd('pop');
+  refreshSfx();
 }
 function closeSfx(){const s=$('sfxsheet');if(s){if(!s.hidden)snd('close');s.hidden=true}}
 function buildSfxGrid(){
@@ -1536,12 +1562,31 @@ function buildSfxGrid(){
   const g=$('sfxg');if(!g)return;
   g.innerHTML=SFX.map((e,k)=>'<button class="sfxi" data-k="'+k+'" onclick="sendSfx('+k+')"><img loading="lazy" alt="" src="'+encodeURI(e.i)+'"><span>'+escH(e.n)+'</span><i class="pl"><b>\u25B6</b><u></u><u></u><u></u></i></button>').join('');
 }
+let sfxSig='';
+async function refreshSfx(){
+  /* Re-scan the server's sound board list so files added/renamed in
+     "sound effect/" show up (or disappear) without a full page reload. */
+  try{
+    const r=await fetch('/api/sfx',{cache:'no-store'});
+    if(!r.ok)return;
+    const list=await r.json();
+    if(!Array.isArray(list)||!list.length)return;
+    const sig=list.map(e=>e.f+'|'+e.i).join('\n');
+    if(sig===sfxSig)return;
+    sfxSig=sig;
+    SFX.length=0;
+    for(const e of list)SFX.push(e);
+    sfxBuilt=false;
+    const sh=$('sfxsheet');
+    if(sh&&!sh.hidden)buildSfxGrid();
+  }catch(e){}
+}
 function sendSfx(i){
   closeSfx();
   const now=Date.now();
   if(now-lastSfxSend<1200)return;
   lastSfxSend=now;
-  act({t:'sfx',i});
+  act({t:'sfx',i,f:SFX[i]?SFX[i].f.split('/').pop():''});
 }
 function setSfxVol(v){
   sfxVol=Math.max(0,Math.min(100,+v|0));
@@ -1556,8 +1601,11 @@ function setUiVol(v){
   if(uiGain)uiGain.gain.value=uiVol/100;
   const vi=$('uivi');if(vi)vi.textContent=uiVol===0?'🔇':uiVol<50?'🔉':'🔊';
 }
-function playSfx(i){
-  const e=SFX[i];if(!e)return;
+function playSfx(i,f){
+  let e;
+  if(f){const m=SFX.find(x=>x.f.split('/').pop()===f);e=m||{f:'sound effect/sounds/'+f,n:''};}
+  else e=SFX[i];
+  if(!e)return;
   document.querySelectorAll('.sfxi.on').forEach(b=>b.classList.remove('on'));
   if(!memeOn)return;
   try{
@@ -1568,13 +1616,12 @@ function playSfx(i){
     const p=sfxAudio.play();
     if(p&&p.catch)p.catch(()=>{});
   }catch(err){}
-  const tile=document.querySelector('.sfxi[data-k="'+i+'"]');
-  if(tile){
-    tile.classList.add('on');
-    sfxAudio.onended=()=>tile.classList.remove('on');
-    sfxAudio.onerror=()=>tile.classList.remove('on');
-  }
+  sfxAudio.onended=()=>{clearSfxBadge();const t=document.querySelector('.sfxi.on');if(t)t.classList.remove('on')};
+  sfxAudio.onerror=()=>{clearSfxBadge();const t=document.querySelector('.sfxi.on');if(t)t.classList.remove('on')};
+  const ti=SFX.indexOf(e),tile=ti>=0?document.querySelector('.sfxi[data-k="'+ti+'"]'):null;
+  if(tile)tile.classList.add('on');
 }
+function clearSfxBadge(){sfxSeat=-1;clearTimeout(sfxClrT);if(G)render()}
 function clearQuickSel(){document.querySelectorAll('#qchat button.sel').forEach(b=>b.classList.remove('sel'))}
 function pickQuick(btn,msg){
   const inp=$('chatInput');if(!inp)return;
@@ -1603,7 +1650,7 @@ function hintFor(){
   if(g.phase==='bid'&&g.turn===me)return'Raise the bid or pass. The lowest bid is 16.';
   if(g.phase==='dbl'&&g.turn===me)return'Double the stakes to ×2? The bidder may then redouble to ×4.';
   if(g.phase==='rdbl'&&g.turn===me)return'Your opponents doubled. Redouble to ×4, or keep ×2.';
-  if(g.phase==='trump'&&g.bidder===me)return'Choose your trump card in the pop-up.';
+  if(g.phase==='trump'&&g.bidder===me)return'Choose your trump suit in the pop-up.';
   if(g.phase==='no7'&&g.bidder===me)return'Cancel the deal or continue in the pop-up.';
   if(g.phase==='sh'&&g.turn===me)return'Declare Single Hand or pass in the pop-up.';
   if(g.sh>=0&&g.phase==='play'&&(g.sh+2)%4===me)return'Your partner plays Single Hand. You sit out this deal.';
@@ -1661,7 +1708,10 @@ function setModal(mh,ml){
   const wasOpen=!el.hidden&&lastModalHTML!=='';
   lastModalHTML=mh;
   if(!mh){el.hidden=true;el.innerHTML='';el.className='mb';return;}
-  el.className='mb'+(ml?' late':'');
+  // No blur for Single Hand declare, Double, Redouble, and Bid popups
+  const noBlur=mh.includes('Declare Single Hand')||mh.includes('Double the stakes')||mh.includes('doubled!')||mh.includes('redoubled!')||mh.includes('Your bid')||mh.includes('Choose trump');
+  const bidup=mh.includes('Your bid')||mh.includes('Choose trump');
+  el.className='mb'+(ml?' late':'')+(noBlur?' no-blur':'')+(bidup?' bidup':'');
   el.innerHTML=mh;
   el.hidden=false;
   if(!wasOpen){
@@ -1742,14 +1792,17 @@ function render(){
   const mine=me>=0&&g.phase==='play'&&g.turn===me&&g.trick.length<tl(),m=mine?moves(me):null;
   const myBid=me>=0&&g.phase==='bid'&&g.turn===me,myTr=me>=0&&g.phase==='trump'&&g.bidder===me;
   const myD=me>=0&&g.phase==='dbl'&&g.turn===me,myR=me>=0&&g.phase==='rdbl'&&g.turn===me;
-  const tr=g.nt?'No trump':g.trump<0?'—':g.rev?SU[g.trump]:(g.bidder===me?SU[g.trump]+' hidden':'hidden');
-  $('chips').innerHTML='<span class="chip">Bid <b>'+(g.bid||'—')+'</b>'+(g.bidder>=0?' '+N(g.bidder):'')+'</span><span class="chip">Trump <b>'+tr+'</b></span>'+(g.sh>=0?'<span class="chip x"><b>Single hand</b></span>':(g.stake>1?'<span class="chip x"><b>×'+g.stake+'</b></span>':''))+(syncErr?'<span class="chip x"><b>Sync problem, retrying</b></span>':'');
+  $('chips').innerHTML=(g.roy?'<span class="chip x"><b>👑 Royals: '+(g.royBy===me?'You':escH(N(g.royBy)))+'</b></span>':'')+(g.sh>=0?'<span class="chip x"><b>Single hand</b></span>':(g.stake>1?'<span class="chip x"><b>×'+g.stake+'</b></span>':''))+(syncErr?'<span class="chip x"><b>Sync problem, retrying</b></span>':'');
   $('msg').textContent=fm(g.msg);
   $('hint').textContent=(hintFor()||(turnNow&&g.turn!==me?'Waiting for '+N(g.turn)+'…':''))+(mine?' Tap a card to play it.':'')+(me>=0&&me===g.bidder&&g.tcard&&g.phase==='play'?' Your trump card is shown but locked until trump is asked or the last trick.':'');
   const t0=tm(V);
   $('strip').innerHTML=[t0,1-t0].map((t,i)=>'<div class="tm'+(i?'':' me')+'"><small>'+(i?'Opponents':'Your team')+'</small><b>'+g.pts[t]+(g.bidder>=0&&tm(g.bidder)===t?' <i>/ '+g.bid+'</i>':'')+'</b><span>Match '+sg(pipScore(g.pips[t]))+'</span>'+pipsH(t)+'</div>').join('');
+  // Sound-board badge: update sfxSeat BEFORE the avatars are built so the
+  // equalizer badge shows in the same frame the sound state arrives.
+  if(seenS<0)seenS=g.sfx?g.sfx.q:0;
+  else if(g.sfx&&g.sfx.q>seenS){seenS=g.sfx.q;if(memeOn){sfxSeat=g.sfx.p;clearTimeout(sfxClrT);sfxClrT=setTimeout(()=>{sfxSeat=-1;if(G)render()},8000)}playSfx(g.sfx.i,g.sfx.f)}
   [0,1,2,3].forEach(r=>{const i=(V+r)%4;
-    $('s'+r).innerHTML='<div class="'+(g.turn===i&&turnNow?'on':'')+'"><div class="av"><span class="pic">'+avSvg((g.av&&g.av[i])|0)+'</span>'+(g.turn===i&&turnNow&&i!==me?'<span class="dots"><i></i><i></i><i></i></span>':'')+(g.phase==='bid'&&g.passed[i]?'<span class="pb">Pass</span>':'')+'</div><div class="sn">'+N(i)+(g.bidder===i?' ★':'')+(r===2||g.bots[i]||(g.sh>=0&&(g.sh===i||(g.sh+2)%4===i))?'<small>'+[r===2?'partner':'',g.bots[i]?'bot':'',g.sh===i?'single hand':'',g.sh>=0&&(g.sh+2)%4===i?'out':''].filter(Boolean).join(' · ')+'</small>':'')+'</div></div>'});
+    $('s'+r).innerHTML='<div class="'+(g.turn===i&&turnNow?'on':'')+'"><div class="av"><span class="pic">'+avSvg((g.av&&g.av[i])|0)+'</span>'+(g.turn===i&&turnNow&&i!==me?'<span class="dots"><i></i><i></i><i></i></span>':'')+(sfxSeat===i?'<span class="spk"><i></i><i></i><i></i></span>':'')+(g.phase==='bid'&&g.passed[i]?'<span class="pb">Pass</span>':'')+'</div><div class="sn">'+N(i)+(g.bidder===i?' ★':'')+(r===2||g.bots[i]||(g.sh>=0&&(g.sh===i||(g.sh+2)%4===i))?'<small>'+[r===2?'partner':'',g.bots[i]?'bot':'',g.sh===i?'single hand':'',g.sh>=0&&(g.sh+2)%4===i?'out':''].filter(Boolean).join(' · ')+'</small>':'')+'</div></div>'});
   let c=g.trick.map(x=>{const r=rel(x.p);return cardH(x.c,'s'+r+(seenT.has(cid(x.c))?'':' in'+r))}).join('');
   if(g.trick.some(x=>!seenT.has(cid(x.c))))snd('play');
   seenT=new Set(g.trick.map(x=>cid(x.c)));
@@ -1796,8 +1849,6 @@ function render(){
   pipPrev=clonePips(g.pips);
   if(seenR<0)seenR=g.react?g.react.q:0;
   else if(g.react&&g.react.q>seenR){seenR=g.react.q;bubble(rel(g.react.p),g.react.e)}
-  if(seenS<0)seenS=g.sfx?g.sfx.q:0;
-  else if(g.sfx&&g.sfx.q>seenS){seenS=g.sfx.q;playSfx(g.sfx.i)}
   maybeAuto();
 }
 $('hand').onclick=e=>{
@@ -1819,4 +1870,5 @@ $('hand').onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;const k=e.target.
   }
 })();
 startSyncLoop();
+refreshSfx();
 </script></body></html>
