@@ -8,7 +8,9 @@ import asyncio
 import json
 import os
 import random
+import re
 import secrets
+import time
 from pathlib import Path
 
 from aiohttp import web
@@ -761,6 +763,442 @@ async def rummy_websocket_handler(request):
     return ws
 
 
+
+
+# ── Chess multiplayer (authoritative server) ──────────────────────
+# The browser client replays the move list from the start position on
+# every sync, so the server only has to validate moves, run the clocks
+# and rebroadcast.  Every outbound message is sync-shaped — the chess
+# client has no message-type dispatcher.
+
+CHESS_ROOMS = {}       # room code -> room dict
+
+
+def _ch_init():
+    cells = []
+    for row in 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'.split('/'):
+        for ch in row:
+            cells.extend([' '] * int(ch) if ch.isdigit() else [ch])
+    return {'b': cells, 't': 'w', 'c': 'KQkq', 'ep': -1, 'hm': 0}
+
+
+def _ch_key(s):
+    return ''.join(s['b']) + s['t'] + s['c'] + str(s['ep'])
+
+
+_CH_KN = [(1, 2), (2, 1), (-1, 2), (-2, 1), (1, -2), (2, -1), (-1, -2), (-2, -1)]
+_CH_D = [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)]
+
+
+def _ch_col(p):
+    if p == ' ':
+        return None
+    return 'w' if p == p.upper() else 'b'
+
+
+def _ch_ok(r, f):
+    return 0 <= r < 8 and 0 <= f < 8
+
+
+def _ch_att(b, s, by):
+    r, f = s >> 3, s & 7
+    w = by == 'w'
+    pr = r + 1 if w else r - 1
+    for d in (-1, 1):
+        if _ch_ok(pr, f + d) and b[pr * 8 + f + d] == ('P' if w else 'p'):
+            return 1
+    for a, c in _CH_KN:
+        if _ch_ok(r + a, f + c) and b[(r + a) * 8 + f + c] == ('N' if w else 'n'):
+            return 1
+    for a, c in _CH_D:
+        y, x, k = r + a, f + c, 1
+        while _ch_ok(y, x):
+            p = b[y * 8 + x]
+            if p != ' ':
+                if _ch_col(p) != by:
+                    break
+                u = p.upper()
+                if (u == 'Q' or (u == 'R' and (a == 0 or c == 0))
+                        or (u == 'B' and a and c) or (u == 'K' and k == 1)):
+                    return 1
+                break
+            y += a
+            x += c
+            k += 1
+    return 0
+
+
+def _ch_apply(s, m):
+    b = list(s['b'])
+    p = b[m['f']]
+    u = p.upper()
+    w = s['t'] == 'w'
+    cap = b[m['t']] != ' ' or bool(m.get('ep'))
+    if m.get('p'):
+        b[m['t']] = m['p'] if w else m['p'].lower()
+    else:
+        b[m['t']] = p
+    b[m['f']] = ' '
+    if m.get('ep'):
+        b[m['t'] + (8 if w else -8)] = ' '
+    if m.get('cs'):
+        h = m['t'] & 56
+        if m['cs'] > 0:
+            b[h + 5] = b[h + 7]
+            b[h + 7] = ' '
+        else:
+            b[h + 3] = b[h]
+            b[h] = ' '
+    c = s['c']
+    if u == 'K':
+        c = c.replace('K' if w else 'k', '').replace('Q' if w else 'q', '')
+    for q in (m['f'], m['t']):
+        if q == 63:
+            c = c.replace('K', '')
+        elif q == 56:
+            c = c.replace('Q', '')
+        elif q == 7:
+            c = c.replace('k', '')
+        elif q == 0:
+            c = c.replace('q', '')
+    return {'b': b, 't': 'b' if w else 'w', 'c': c,
+            'ep': (m['f'] + m['t']) // 2 if m.get('dp') else -1,
+            'hm': 0 if (u == 'P' or cap) else s['hm'] + 1}
+
+
+def _ch_gen(s):
+    o = []
+    b = s['b']
+    me = s['t']
+    en = 'b' if me == 'w' else 'w'
+    w = me == 'w'
+    for i in range(64):
+        p = b[i]
+        if _ch_col(p) != me:
+            continue
+        u = p.upper()
+        r, f = divmod(i, 8)
+
+        def add(t, _i=i, **kw):
+            o.append(dict(f=_i, t=t, **kw))
+
+        if u == 'P':
+            d = -1 if w else 1
+            pm = r + d == (0 if w else 7)
+
+            def ps(t, _pm=pm):
+                if _pm:
+                    for q in 'QRBN':
+                        add(t, p=q)
+                else:
+                    add(t)
+
+            if b[i + d * 8] == ' ':
+                ps(i + d * 8)
+                if r == (6 if w else 1) and b[i + d * 16] == ' ':
+                    add(i + d * 16, dp=1)
+            for df in (-1, 1):
+                if not _ch_ok(r + d, f + df):
+                    continue
+                t = i + d * 8 + df
+                if _ch_col(b[t]) == en:
+                    ps(t)
+                elif t == s['ep']:
+                    add(t, ep=1)
+        elif u in ('N', 'K'):
+            for a, c in (_CH_KN if u == 'N' else _CH_D):
+                if _ch_ok(r + a, f + c) and _ch_col(b[(r + a) * 8 + f + c]) != me:
+                    add((r + a) * 8 + f + c)
+            if u == 'K' and not _ch_att(b, i, en):
+                h = 56 if w else 0
+                R = 'R' if w else 'r'
+                if ((w and 'K' in s['c']) or (not w and 'k' in s['c'])) and \
+                   b[h + 5] == ' ' and b[h + 6] == ' ' and b[h + 7] == R and \
+                   not _ch_att(b, h + 5, en) and not _ch_att(b, h + 6, en):
+                    add(h + 6, cs=1)
+                if ((w and 'Q' in s['c']) or (not w and 'q' in s['c'])) and \
+                   b[h + 1] == ' ' and b[h + 2] == ' ' and b[h + 3] == ' ' and \
+                   b[h] == R and not _ch_att(b, h + 3, en) and not _ch_att(b, h + 2, en):
+                    add(h + 2, cs=-1)
+        else:
+            for a, c in _CH_D:
+                if (u == 'R' and a and c) or (u == 'B' and not (a and c)):
+                    continue
+                y, x = r + a, f + c
+                while _ch_ok(y, x):
+                    t = y * 8 + x
+                    if _ch_col(b[t]) == me:
+                        break
+                    add(t)
+                    if b[t] != ' ':
+                        break
+                    y += a
+                    x += c
+    out = []
+    for m in o:
+        n = _ch_apply(s, m)
+        if not _ch_att(n['b'], n['b'].index('K' if w else 'k'), en):
+            out.append(m)
+    return out
+
+
+def _ch_chk(s):
+    w = s['t'] == 'w'
+    return _ch_att(s['b'], s['b'].index('K' if w else 'k'), 'b' if w else 'w')
+
+
+def _ch_stat(n, h):
+    w = 'b' if n['t'] == 'w' else 'w'
+    if not _ch_gen(n):
+        return w + ':mate' if _ch_chk(n) else 'd:stalemate'
+    if n['hm'] >= 100:
+        return 'd:50-move rule'
+    o = [p for p in n['b'] if p not in (' ', 'K', 'k')]
+    if not o or (len(o) == 1 and o[0].lower() in ('n', 'b')):
+        return 'd:insufficient material'
+    if h.count(h[-1]) >= 3:
+        return 'd:repetition'
+    return None
+
+
+def _ch_make_room(code, data):
+    try:
+        t = int(data.get('time'))
+    except (TypeError, ValueError):
+        t = 300
+    try:
+        inc = int(data.get('inc'))
+    except (TypeError, ValueError):
+        inc = 0
+    t = min(max(t, 10), 7200)
+    inc = min(max(inc, 0), 60)
+    st = _ch_init()
+    return {
+        'id': code,
+        'seats': {c: {'ws': None, 'pid': None, 'name': None} for c in 'wb'},
+        'mv': [],
+        'state': st,
+        'hist': [_ch_key(st)],
+        'clk': [float(t), float(t)],
+        'last': time.monotonic(),
+        'time': t,
+        'inc': inc,
+        'res': None,
+        'draw': None,
+        'rematch': set(),
+        'specs': set(),
+    }
+
+
+def _ch_turn(room):
+    return 'w' if len(room['mv']) % 2 == 0 else 'b'
+
+
+def _ch_full(room):
+    return sum(1 for c in 'wb' if room['seats'][c]['ws'] is not None)
+
+
+def _ch_clock(room):
+    """Settle the running clock up to now.  Only valid while both seats
+    have been continuously connected since the last update (callers
+    update `last` whenever connectivity changes)."""
+    now = time.monotonic()
+    if room['res'] is None and _ch_full(room) == 2:
+        i = 0 if _ch_turn(room) == 'w' else 1
+        room['clk'][i] = max(0.0, room['clk'][i] - (now - room['last']))
+    room['last'] = now
+
+
+def _ch_sync(room, color):
+    return {
+        'c': color,
+        'names': {c: room['seats'][c]['name'] for c in 'wb'},
+        'clk': [round(room['clk'][0], 1), round(room['clk'][1], 1)],
+        'full': _ch_full(room),
+        'res': room['res'],
+        'draw': room['draw'],
+        'mv': room['mv'],
+    }
+
+
+async def _ch_send(ws, room, color):
+    try:
+        await ws.send_str(json.dumps(_ch_sync(room, color)))
+    except Exception:
+        pass
+
+
+async def _ch_broadcast(room):
+    _ch_clock(room)
+    for c in 'wb':
+        seat = room['seats'][c]
+        if seat['ws'] is not None:
+            await _ch_send(seat['ws'], room, c)
+    for spec in list(room['specs']):
+        await _ch_send(spec, room, None)
+
+
+async def chess_websocket_handler(request):
+    ws = web.WebSocketResponse(heartbeat=25)
+    await ws.prepare(request)
+    session = {'room': None, 'color': None}
+    try:
+        async for msg in ws:
+            if msg.type != web.WSMsgType.TEXT:
+                continue
+            try:
+                data = json.loads(msg.data)
+            except (ValueError, TypeError):
+                continue
+            if not isinstance(data, dict):
+                continue
+            kind = data.get('t')
+            rid = session.get('room')
+            room = CHESS_ROOMS.get(rid) if rid else None
+
+            if kind == 'join':
+                code = ''.join(ch for ch in str(data.get('room') or '')
+                               if ch.isalnum())[:8].upper()
+                if not code:
+                    continue
+                # Drop tables nobody has touched for a while.
+                nowm = time.monotonic()
+                for stale in [k for k, r in CHESS_ROOMS.items()
+                              if not r['specs'] and _ch_full(r) == 0
+                              and nowm - r['last'] > 1800]:
+                    CHESS_ROOMS.pop(stale, None)
+                if code not in CHESS_ROOMS:
+                    CHESS_ROOMS[code] = _ch_make_room(code, data)
+                room = CHESS_ROOMS[code]
+                pid = str(data.get('pid') or '')[:40]
+                name = _clean_name(data.get('name')) or 'Player'
+                want = data.get('color')
+                if want not in ('w', 'b'):
+                    want = 'r'
+                _ch_clock(room)
+                color = None
+                for c in 'wb':
+                    seat = room['seats'][c]
+                    if pid and seat['pid'] == pid:
+                        color = c
+                        break
+                if color is None:
+                    free = [c for c in 'wb' if room['seats'][c]['ws'] is None]
+                    if free:
+                        color = want if want in free else (
+                            random.choice(free) if want == 'r' else free[0])
+                if color:
+                    seat = room['seats'][color]
+                    seat.update(ws=ws, pid=pid, name=name)
+                    session.update(room=code, color=color)
+                    room['specs'].discard(ws)
+                else:
+                    session.update(room=code, color=None)
+                    room['specs'].add(ws)
+                room['last'] = time.monotonic()
+                await _ch_broadcast(room)
+                continue
+
+            if room is None:
+                continue
+            color = session.get('color')
+            seated = bool(color) and room['seats'][color]['ws'] is ws
+
+            if kind == 'move':
+                if not seated or room['res'] is not None or _ch_full(room) < 2:
+                    continue
+                _ch_clock(room)
+                if _ch_turn(room) != color:
+                    await _ch_send(ws, room, color)
+                    continue
+                try:
+                    a = int(data.get('a'))
+                    b_ = int(data.get('b'))
+                except (TypeError, ValueError):
+                    continue
+                p = str(data.get('p') or '')
+                if p not in ('', 'Q', 'R', 'B', 'N'):
+                    p = ''
+                found = None
+                for m in _ch_gen(room['state']):
+                    if m['f'] == a and m['t'] == b_ and (m.get('p') or '') == p:
+                        found = m
+                        break
+                if found is None:
+                    # Illegal move or not your colour — resync the sender.
+                    await _ch_send(ws, room, color)
+                    continue
+                state = _ch_apply(room['state'], found)
+                room['state'] = state
+                room['mv'].append([a, b_, p])
+                room['hist'].append(_ch_key(state))
+                room['clk'][0 if color == 'w' else 1] += room['inc']
+                room['draw'] = None
+                room['res'] = _ch_stat(state, room['hist'])
+                room['last'] = time.monotonic()
+                await _ch_broadcast(room)
+
+            elif kind == 'flag':
+                if not seated or room['res'] is not None or _ch_full(room) < 2:
+                    continue
+                _ch_clock(room)
+                turn = _ch_turn(room)
+                if room['clk'][0 if turn == 'w' else 1] <= 0:
+                    room['res'] = ('b' if turn == 'w' else 'w') + ':time'
+                await _ch_broadcast(room)
+
+            elif kind == 'draw':
+                if not seated or room['res'] is not None or _ch_full(room) < 2:
+                    continue
+                if room['draw'] is None:
+                    room['draw'] = color
+                elif room['draw'] != color:
+                    room['res'] = 'd:agreement'
+                    room['draw'] = None
+                await _ch_broadcast(room)
+
+            elif kind == 'resign':
+                if not seated or room['res'] is not None:
+                    continue
+                _ch_clock(room)
+                room['res'] = ('b' if color == 'w' else 'w') + ':resign'
+                await _ch_broadcast(room)
+
+            elif kind == 'rm':
+                if not seated or room['res'] is None:
+                    continue
+                room['rematch'].add(color)
+                if len(room['rematch']) == 2:
+                    st = _ch_init()
+                    room['mv'] = []
+                    room['state'] = st
+                    room['hist'] = [_ch_key(st)]
+                    room['clk'] = [float(room['time']), float(room['time'])]
+                    room['res'] = None
+                    room['draw'] = None
+                    room['rematch'] = set()
+                    room['last'] = time.monotonic()
+                await _ch_broadcast(room)
+
+    except Exception as exc:
+        print(f'[chess] websocket error: {exc!r}')
+    finally:
+        rid = session.get('room')
+        room = CHESS_ROOMS.get(rid) if rid else None
+        if room is not None:
+            color = session.get('color')
+            seat = room['seats'].get(color) if color else None
+            if seat is not None and seat['ws'] is ws:
+                _ch_clock(room)
+                seat['ws'] = None
+                room['last'] = time.monotonic()
+                await _ch_broadcast(room)
+            elif ws in room['specs']:
+                room['specs'].discard(ws)
+                await _ch_broadcast(room)
+    return ws
+
+
 # ── Middleware: no-cache for HTML ──────────────────────────────────
 
 async def no_cache_middleware(app, handler):
@@ -773,6 +1211,198 @@ async def no_cache_middleware(app, handler):
             response.headers['Expires'] = '0'
         return response
     return middleware
+
+
+# ── Carrom multiplayer (room relay) ───────────────────────────────
+# The carrom client runs the whole game locally. The server only pairs
+# two players, keeps their seats through short disconnects, and relays
+# game messages between them.
+# Client -> server: create_table / join_table / game / leave
+# Server -> client: table_created / table_joined / opponent_* / game
+
+CARROM_TABLES = {}      # table code -> room dict
+CARROM_GRACE = 45.0     # seconds a disconnected seat stays reserved
+CARROM_STALE = 1800.0   # empty room lifetime
+
+
+def _carrom_code():
+    while True:
+        code = ''.join(secrets.choice('ABCDEFGHJKLMNPQRSTUVWXYZ23456789')
+                       for _ in range(4))
+        if code not in CARROM_TABLES:
+            return code
+
+
+def _carrom_make_room(code):
+    return {'code': code, 'seats': [None, None], 'last': time.monotonic()}
+
+
+def _carrom_seat(room, ws):
+    for i, seat in enumerate(room['seats']):
+        if seat is not None and seat['ws'] is ws:
+            return i
+    return None
+
+
+def _carrom_other(room, i):
+    if i is None:
+        return None
+    seat = room['seats'][1 - i]
+    return seat['ws'] if seat is not None else None
+
+
+def _carrom_cleanup():
+    now = time.monotonic()
+    for code, room in list(CARROM_TABLES.items()):
+        for i, seat in enumerate(room['seats']):
+            if seat is not None and seat['ws'] is None:
+                if now - seat.get('lost', room['last']) > CARROM_GRACE:
+                    room['seats'][i] = None
+        if all(s is None for s in room['seats']):
+            if now - room['last'] > CARROM_STALE:
+                CARROM_TABLES.pop(code, None)
+
+
+async def _carrom_send(ws, payload):
+    if ws is None:
+        return
+    try:
+        await ws.send_str(json.dumps(payload))
+    except Exception:
+        pass
+
+
+async def carrom_websocket_handler(request):
+    ws = web.WebSocketResponse(heartbeat=25)
+    await ws.prepare(request)
+    session = {'table': None, 'seat': None}
+    try:
+        async for msg in ws:
+            if msg.type != web.WSMsgType.TEXT:
+                continue
+            try:
+                data = json.loads(msg.data)
+            except Exception:
+                continue
+            if not isinstance(data, dict):
+                continue
+            kind = str(data.get('type') or '').lower()
+            rid = session.get('table')
+            room = CARROM_TABLES.get(rid) if rid else None
+
+            if kind == 'create_table':
+                _carrom_cleanup()
+                code = _carrom_code()
+                room = _carrom_make_room(code)
+                room['seats'][0] = {
+                    'ws': ws,
+                    'pid': str(data.get('pid') or '')[:40],
+                    'name': _clean_name(data.get('name')) or 'Player',
+                    'lost': 0,
+                }
+                CARROM_TABLES[code] = room
+                session.update(table=code, seat=0)
+                await _carrom_send(ws, {'type': 'table_created',
+                                        'table': code, 'seat': 0})
+                continue
+
+            if kind == 'join_table':
+                _carrom_cleanup()
+                code = ''.join(ch for ch in str(data.get('table') or '')
+                               if ch.isalnum())[:8].upper()
+                room = CARROM_TABLES.get(code)
+                if room is None:
+                    await _carrom_send(ws, {'type': 'error',
+                                            'message': 'Table not found.'})
+                    continue
+                pid = str(data.get('pid') or '')[:40]
+                name = _clean_name(data.get('name')) or 'Player'
+                seat_i = None
+                resumed = False
+                for i, seat in enumerate(room['seats']):
+                    if seat is not None and pid and seat['pid'] == pid:
+                        seat_i = i
+                        resumed = True
+                        break
+                if seat_i is None:
+                    for i, seat in enumerate(room['seats']):
+                        if seat is None:
+                            seat_i = i
+                            break
+                if seat_i is None:
+                    waiting = any(s is not None and s['ws'] is None
+                                  for s in room['seats'])
+                    await _carrom_send(ws, {
+                        'type': 'error',
+                        'message': ('Table is waiting for a player to reconnect.'
+                                    if waiting else 'Table is full.')})
+                    continue
+                seat = room['seats'][seat_i]
+                old_ws = seat['ws'] if seat is not None else None
+                if seat is None:
+                    seat = {'ws': ws, 'pid': pid, 'name': name, 'lost': 0}
+                    room['seats'][seat_i] = seat
+                else:
+                    seat.update(ws=ws, pid=pid or seat['pid'],
+                                name=name or seat['name'], lost=0)
+                session.update(table=code, seat=seat_i)
+                room['last'] = time.monotonic()
+                if old_ws is not None and old_ws is not ws:
+                    try:
+                        await old_ws.close(message=b'replaced')
+                    except Exception:
+                        pass
+                await _carrom_send(ws, {'type': 'table_joined', 'table': code,
+                                        'seat': seat_i,
+                                        'resumed': resumed})
+                other = _carrom_other(room, seat_i)
+                if other is not None:
+                    await _carrom_send(other, {
+                        'type': ('opponent_reconnected' if resumed
+                                 else 'opponent_joined'),
+                        'table': code})
+                continue
+
+            if room is None:
+                continue
+            seat_i = _carrom_seat(room, ws)
+            if seat_i is None:
+                continue
+
+            if kind == 'leave':
+                room['seats'][seat_i] = None
+                room['last'] = time.monotonic()
+                other = _carrom_other(room, seat_i)
+                if other is not None:
+                    await _carrom_send(other, {'type': 'opponent_left',
+                                               'table': rid})
+                session.update(table=None, seat=None)
+                if all(s is None for s in room['seats']):
+                    CARROM_TABLES.pop(rid, None)
+                continue
+
+            if kind == 'game':
+                other = _carrom_other(room, seat_i)
+                if other is not None:
+                    await _carrom_send(other, {'type': 'game', 'table': rid,
+                                               'data': data.get('data')})
+                room['last'] = time.monotonic()
+    finally:
+        rid = session.get('table')
+        seat_i = session.get('seat')
+        if rid is not None and seat_i is not None:
+            room = CARROM_TABLES.get(rid)
+            if room is not None:
+                seat = room['seats'][seat_i]
+                if seat is not None and seat['ws'] is ws:
+                    seat['ws'] = None
+                    seat['lost'] = time.monotonic()
+                    room['last'] = time.monotonic()
+                    other = _carrom_other(room, seat_i)
+                    if other is not None:
+                        await _carrom_send(other, {'type': 'opponent_left',
+                                                   'table': rid})
+    return ws
 
 
 # ── Static files ───────────────────────────────────────────────────
@@ -817,16 +1447,78 @@ async def gameMemory(request):
     return resp
 
 
+async def gameChess(request):
+    resp = web.FileResponse(STATIC_DIR / 'chess.html')
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '0'
+    return resp
+
+
+async def gameCarrom(request):
+    resp = web.FileResponse(STATIC_DIR / 'carrom.html')
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '0'
+    return resp
+
+
+# ── Meme-sound list (auto-discovered from the sound effect folders) ──
+# Drop `name.mp3` into "sound effect/sounds/" and `name.jpg` into
+# "sound effect/image/" and the pair shows up in the sound board.
+
+SFX_AUDIO_EXT = {'.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac'}
+SFX_IMAGE_EXT = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
+
+
+def _sfx_list():
+    """Pair each sound with an image that shares the same base name."""
+    sdir = STATIC_DIR / 'sound effect' / 'sounds'
+    idir = STATIC_DIR / 'sound effect' / 'image'
+    imgs = {}
+    if idir.is_dir():
+        for p in idir.iterdir():
+            if p.is_file() and p.suffix.lower() in SFX_IMAGE_EXT:
+                imgs.setdefault(p.stem, p.name)
+    out = []
+    if sdir.is_dir():
+        for p in sorted(sdir.iterdir(), key=lambda x: x.name.lower()):
+            if not (p.is_file() and p.suffix.lower() in SFX_AUDIO_EXT):
+                continue
+            img = imgs.get(p.stem)
+            if img is None:
+                continue
+            # "are-baap-re-yaad-aya (mp3cut.net)" -> "Are baap re yaad aya"
+            label = re.sub(r'\([^)]*\)', ' ', p.stem)
+            label = re.sub(r'[-_]+', ' ', label)
+            label = re.sub(r'\s+', ' ', label).strip()
+            label = label[:1].upper() + label[1:] if label else p.stem
+            out.append({'f': 'sound effect/sounds/' + p.name,
+                        'i': 'sound effect/image/' + img,
+                        'n': label})
+    return out
+
+
+async def apiSfx(request):
+    return web.json_response(_sfx_list(),
+                              headers={'Cache-Control': 'no-store'})
+
+
 def create_app():
     app = web.Application()
     app.router.add_get('/ws', websocket_handler)
     app.router.add_get('/rummy-ws', rummy_websocket_handler)
+    app.router.add_get('/ws/chess', chess_websocket_handler)
+    app.router.add_get('/carrom-ws', carrom_websocket_handler)
     app.router.add_get('/', index)
     app.router.add_get('/29', game29)
     app.router.add_get('/play', game29)
     app.router.add_get('/ludo', gameLudo)
     app.router.add_get('/memory', gameMemory)
     app.router.add_get('/rummy', gameRummy)
+    app.router.add_get('/chess', gameChess)
+    app.router.add_get('/carrom', gameCarrom)
+    app.router.add_get('/api/sfx', apiSfx)
     app.router.add_static('/', STATIC_DIR, name='static')
     app.middlewares.append(no_cache_middleware)
     return app
